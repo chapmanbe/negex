@@ -1,4 +1,4 @@
-NegEx_ uses terms to trigger and terminate negations, as described in the NegExAlgorithm page.
+=NegEx uses terms to trigger and terminate negations, as described in the NegExAlgorithm page.=
 
 = Pseudo negation terms =
 no increase 
