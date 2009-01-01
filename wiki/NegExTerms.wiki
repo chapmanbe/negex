@@ -6,12 +6,13 @@ _When supplementing the list with terms you have found successful, please use th
 - if any of the terms you add need notations, add notes in parentheses following the term
 
 For example:
+
 WWC
 negative for (works for pathology reports)_
 
 = Pseudo negation terms =
 
-no increase 
+no increase
 no suspicious change 
 no significant change 
 no change 
