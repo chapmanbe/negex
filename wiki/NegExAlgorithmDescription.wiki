@@ -5,7 +5,7 @@
 
 ==Terms used by regular expressions==
 
-I. Negation terms
+===I. Negation terms===
 
 Three types of terms are used to indicate negation:
 
@@ -15,32 +15,25 @@ Three types of terms are used to indicate negation:
 
 (3) Post-condition negation term - terms that occur after the term they are negating. Post-condition terms are used in Regular Expression 2.
 
-II. Termination terms
+===II. Termination terms===
 
 Termination terms indicate that the scope of the negation term should end. For example, the term "but" terminates the scope of the negation in the sentence "Patient denies chest pain but continues to experience SOB."
 
-= Details =
+== III. Regular Expressions ==
 
-Scope o
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+The regular expressions determine the scope of the negation within the sentence. 
 
-I. Regular Expressions:
-
-NegEx uses two regular expressions that are triggered by three types of negation phrases.
-Regular Expression 1:        <negation phrase> * <indexed term> 
+NegEx uses two regular expressions that are triggered by the negation terms described above:
+Regular Expression 1:        <negation term> * <termination term|end of sentence> 
 Regular Expression 2:        <indexed term> * <negation phrase>
 
-The asterisk (*) represents five words. A word can be a single word or a UMLS phrase.
-II. Negation Phrases:
+The asterisk (*) can represents a specified number of words or an unspecified number of words. Historically, NegEx set the asterisk to five words (a word can be a single word or a phrase like "shortness of breath"). With the addition of termination terms, we set the asterisk to any number of words. 
 
+Our current version is as follows:
+RE 1 --> * = any number of words or punctuation
+RE 2 --> * = five words or medical phrases
 
-The list of actual phrases is shown is section IV below. 
- 
-
-III. NegEx Algorithm:
+===IV. NegEx Algorithm===
 For each sentence, find all negation phrases (from the lists described in (IV) below):
 Go to the first negation phrase in the sentence (Neg1).
 
