@@ -24,22 +24,24 @@ Termination terms indicate that the scope of the negation term should end. For e
 The regular expressions determine the scope of the negation within the sentence. 
 
 NegEx uses two regular expressions that are triggered by the negation terms described above:
-Regular Expression 1:        <negation term> * <termination term|end of sentence> 
-Regular Expression 2:        <indexed term> * <negation phrase>
+Regular Expression 1:        <negation term> <$> <termination term|end of sentence> 
+Regular Expression 2:        <indexed term> <$> <negation phrase>
 
-The asterisk (*) can represents a specified number of words or an unspecified number of words. Historically, NegEx set the asterisk to five words (a word can be a single word or a phrase like "shortness of breath"). With the addition of termination terms, we set the asterisk to any number of words. 
+$ can represents a specified or unspecified number of words. Historically, NegEx set $ to five words (a word can be a single word or a phrase like "shortness of breath"). With the addition of termination terms, we set $ to any number of words. 
 
 Our current version is as follows:
-RE 1 --> * = any number of words or punctuation
-RE 2 --> * = five words or medical phrases
+RE 1 --> $1 = any number of words or punctuation
+RE 2 --> $2 = five words or medical phrases
 
 ===NegEx Algorithm===
-For each sentence, find all negation phrases (from the lists described in (IV) below):
-Go to the first negation phrase in the sentence (Neg1).
+For each sentence, find all negation terms:
+Go to the first negation term in the sentence (Neg1).
 
-If Neg1 is a pseudo-negation phrase, skip to the next negation phrase in the sentence.
+If Neg1 is a pseudo-negation term, skip to the next negation term in the sentence.
 
-If Neg1 is a pre-UMLS negation phrase, define a window of six words after Neg1 (one UMLS phrase counts as one word - e.g., "chest pain" is considered one word); if Neg1 is a post-UMLS negation phrase, define a window of six words before Neg1.
+If Neg1 is a pre-condition negation term:
+
+   Define the scope of Neg1 forward based on the value of $1; if Neg1 is a post-condition negation term, define the scope of Neg1 backwards based on the value of $2.
 
 Decide whether to decrease window size:
 
