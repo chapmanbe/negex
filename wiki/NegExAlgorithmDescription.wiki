@@ -1,0 +1,62 @@
+#labels Phase-Implementation
+#NegEx uses regular expressions and a list of terms to determine whether clinical conditions are negated in a sentence.
+
+= Algorithm =
+
+==Terms used by regular expressions==
+
+I. Negation terms
+
+Three types of terms are used to indicate negation:
+
+(1) Pseudo negation terms - phrases that look like negation terms but do not negate the clinical condition. If a pseudo-negation term is found, NegEx skips to the next negation term.
+
+(2) Pre-condition negation term - terms that occur before the term they are negating. Pre-condition terms are used in Regular Expression 1.
+
+(3) Post-condition negation term - terms that occur after the term they are negating. Post-condition terms are used in Regular Expression 2.
+
+II. Termination terms
+
+Termination terms indicate that the scope of the negation term should end. For example, the term "but" terminates the scope of the negation in the sentence "Patient denies chest pain but continues to experience SOB."
+
+= Details =
+
+Scope o
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
+
+I. Regular Expressions:
+
+NegEx uses two regular expressions that are triggered by three types of negation phrases.
+Regular Expression 1:        <negation phrase> * <indexed term> 
+Regular Expression 2:        <indexed term> * <negation phrase>
+
+The asterisk (*) represents five words. A word can be a single word or a UMLS phrase.
+II. Negation Phrases:
+
+
+The list of actual phrases is shown is section IV below. 
+ 
+
+III. NegEx Algorithm:
+For each sentence, find all negation phrases (from the lists described in (IV) below):
+Go to the first negation phrase in the sentence (Neg1).
+
+If Neg1 is a pseudo-negation phrase, skip to the next negation phrase in the sentence.
+
+If Neg1 is a pre-UMLS negation phrase, define a window of six words after Neg1 (one UMLS phrase counts as one word - e.g., "chest pain" is considered one word); if Neg1 is a post-UMLS negation phrase, define a window of six words before Neg1.
+
+Decide whether to decrease window size:
+
+A. If another negation phrase (Neg2) is found within the six-word window, decrease the size of the window to end immediately preceding Neg2.
+Example: in the sentence "The patient denies [chest_pain and has no shortness_of_breath]" words in bold are negation phrases (denies = Neg1; no = Neg2), words in italics are UMLS terms considered for negation. The initial window for possible pertinent negatives for Neg1 is contained in brackets. Because another negation phrase (Neg2) also falls within the window, the window is decreased as follows: "The patient denies [chest_pain and has] no shortness_of_breath." According to the algorithm, chest_pain will be negated with Neg1 (denies) and shortness_of_breath will be negated with Neg2 (no).
+
+B. If a conjunction from the conjunction list described in ( IV-4 ) occurs within the six-word window, decrease the size of the window to end immediately preceding the conjunction.
+
+Example: In the sentence "The patient denies [chest_pain but has experienced some shortness_of_breath]" words in bold are negation phrases (denies = Neg1), words in italics are UMLS terms considered for negation, and the underlined word is a conjunction from the conjunction list. The initial window for possible pertinent negatives for Neg1 is contained in brackets. Because a relevant conjunction also falls within the window, the window is decreased as follows: "The patient denies [chest_pain] but  has experienced some shortness_of_breath." According to the algorithm, chest_pain is negated with Neg1 (denies) but shortness_of_breath is not negated.
+Mark all UMLS terms within the window that are indexed as findings or diseases (from the list described in (V) below) as either negated (if negation phrase is a negating phrase) or possible (if negation phrase is a hypothetical possibility phrase).
+Repeat for all negation phrases in the sentence.
+
+Repeat for all sentences. 
