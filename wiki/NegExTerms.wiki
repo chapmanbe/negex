@@ -1,6 +1,15 @@
-=NegEx uses terms to trigger and terminate negations, as described in the NegExAlgorithm page.=
+NegEx uses terms to trigger and terminate negations, as described in the NegExAlgorithm page.
+
+_When supplementing the list with terms you have found successful, please append the following information after each term, if relevant: [use the following conventions:
+* before your list of terms (a list can include one or more terms), put your initials
+* if any of the terms you add need notations, add notes in parentheses following the term
+
+For example:
+WWC
+negative for (works for pathology reports)_
 
 = Pseudo negation terms =
+
 no increase 
 no suspicious change 
 no significant change 
