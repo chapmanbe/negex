@@ -19,7 +19,7 @@ Three types of terms are used to indicate negation:
 
 Termination terms indicate that the scope of the negation term should end. For example, the term "but" terminates the scope of the negation in the sentence "Patient denies chest pain but continues to experience SOB."
 
-== III. Regular Expressions ==
+== Regular Expressions ==
 
 The regular expressions determine the scope of the negation within the sentence. 
 
@@ -33,7 +33,7 @@ Our current version is as follows:
 RE 1 --> * = any number of words or punctuation
 RE 2 --> * = five words or medical phrases
 
-===IV. NegEx Algorithm===
+===NegEx Algorithm===
 For each sentence, find all negation phrases (from the lists described in (IV) below):
 Go to the first negation phrase in the sentence (Neg1).
 
