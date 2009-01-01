@@ -50,3 +50,11 @@ If Neg1 is a pre-condition negation term:
 If Neg1 is a post-condition negation term, define the scope of Neg1 backwards based on the value of $2.
 
 Repeat for all negation terms in the sentence.
+
+==Examples==
+Text in square brackets is within the scope of the bolded negation term.
+
+"The patient *denies* [chest_pain and has] *no* [shortness_of_breath]." 
+"The patient *denies* [chest_pain] but has experienced some shortness_of_breath" 
+"[She is tumor] *free*."
+"No increase in tumor size."
