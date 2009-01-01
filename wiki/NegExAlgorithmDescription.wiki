@@ -1,5 +1,5 @@
 #labels Phase-Implementation
-#NegEx uses regular expressions and a list of terms to determine whether clinical conditions are negated in a sentence.
+NegEx uses regular expressions and a list of terms to determine whether clinical conditions are negated in a sentence.
 
 = Algorithm =
 
@@ -33,7 +33,8 @@ Our current version is as follows:
 RE 1 --> $1 = any number of words or punctuation
 RE 2 --> $2 = five words or medical phrases
 
-===NegEx Algorithm===
+==Algorithm==
+
 For each sentence, find all negation terms:
 Go to the first negation term in the sentence (Neg1).
 
@@ -41,17 +42,11 @@ If Neg1 is a pseudo-negation term, skip to the next negation term in the sentenc
 
 If Neg1 is a pre-condition negation term:
 
-   Define the scope of Neg1 forward based on the value of $1; if Neg1 is a post-condition negation term, define the scope of Neg1 backwards based on the value of $2.
+   Define the scope of Neg1 forward based on the value of $1, terminating the scope when you encounter any of the following:
+        * a termination term
+        * another negation or pseudo-negation term
+        * the end of the sentence
 
-Decide whether to decrease window size:
+If Neg1 is a post-condition negation term, define the scope of Neg1 backwards based on the value of $2.
 
-A. If another negation phrase (Neg2) is found within the six-word window, decrease the size of the window to end immediately preceding Neg2.
-Example: in the sentence "The patient denies [chest_pain and has no shortness_of_breath]" words in bold are negation phrases (denies = Neg1; no = Neg2), words in italics are UMLS terms considered for negation. The initial window for possible pertinent negatives for Neg1 is contained in brackets. Because another negation phrase (Neg2) also falls within the window, the window is decreased as follows: "The patient denies [chest_pain and has] no shortness_of_breath." According to the algorithm, chest_pain will be negated with Neg1 (denies) and shortness_of_breath will be negated with Neg2 (no).
-
-B. If a conjunction from the conjunction list described in ( IV-4 ) occurs within the six-word window, decrease the size of the window to end immediately preceding the conjunction.
-
-Example: In the sentence "The patient denies [chest_pain but has experienced some shortness_of_breath]" words in bold are negation phrases (denies = Neg1), words in italics are UMLS terms considered for negation, and the underlined word is a conjunction from the conjunction list. The initial window for possible pertinent negatives for Neg1 is contained in brackets. Because a relevant conjunction also falls within the window, the window is decreased as follows: "The patient denies [chest_pain] but  has experienced some shortness_of_breath." According to the algorithm, chest_pain is negated with Neg1 (denies) but shortness_of_breath is not negated.
-Mark all UMLS terms within the window that are indexed as findings or diseases (from the list described in (V) below) as either negated (if negation phrase is a negating phrase) or possible (if negation phrase is a hypothetical possibility phrase).
-Repeat for all negation phrases in the sentence.
-
-Repeat for all sentences. 
+Repeat for all negation terms in the sentence.
