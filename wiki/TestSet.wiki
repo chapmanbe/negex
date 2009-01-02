@@ -1,0 +1,5 @@
+#summary A set of sentences to test your own version of NegEx and make sure it is working according to the algorithm on this site
+#labels Phase-QA
+
+_This is something we will be adding soon..._
+
