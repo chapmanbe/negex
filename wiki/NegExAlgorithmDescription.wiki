@@ -1,5 +1,5 @@
+#summary NegEx uses regular expressions and a list of terms to determine whether clinical conditions are negated in a sentence.
 #labels Phase-Implementation
-NegEx uses regular expressions and a list of terms to determine whether clinical conditions are negated in a sentence.
 
 = Algorithm =
 
