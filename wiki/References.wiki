@@ -16,3 +16,4 @@
 =Related Approaches= 
 
  * Uzuner O, Zhang X, Sibanda T. Machine Learning and Rule-based Approaches to Assertion Classification. J Am Med Inform Assoc. 2009;16:109-115. DOI 10.1197/jamia.M2950
+ * Roser Morante†, Anthony Liekens‡, Walter Daelemans. Learning the Scope of Negation in Biomedical Texts. Proceedings of the 2008 Conference on Empirical Methods in Natural Language Processing, pages 715–724. http://aclweb.org/anthology-new/D/D08/D08-1075.pdf
