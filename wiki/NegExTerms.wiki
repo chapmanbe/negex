@@ -1,10 +1,9 @@
 #summary NegEx uses terms to trigger and terminate negations, as described in the NegExAlgorithm page.
 
-_When supplementing the list with terms you have found successful, please use the following conventions:
+When supplementing the list with terms you have found successful, please use the following conventions:
 
-- before your list of terms (a list can include one or more terms), put your initials
-
-- if any of the terms you add need notations, add notes in parentheses following the term
+ * before your list of terms (a list can include one or more terms), put your initials
+ * if any of the terms you add need notations, add notes in parentheses following the term
 
 For example:
 
