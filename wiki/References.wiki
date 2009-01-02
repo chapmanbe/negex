@@ -1,6 +1,6 @@
 #summary References for papers evaluating NegEx or applying NegEx
 
-=Papers evaluating NegEx =
+=Papers evaluating !NegEx =
 
 
  * Chapman WW, Bridewell W, Hanbury P, Cooper GF, Buchanan BG. A simple algorithm for identifying negated findings and diseases in discharge summaries.  J Biomed Inform. 2001;34:301-10.
@@ -8,7 +8,7 @@
 
 
 
-=Papers applying NegEx =
+=Papers applying !NegEx =
 
  * Chapman WW, Bridewell W, Hanbury P, Cooper GF, Buchanan B. Evaluation of negation phrases in narrative clinical reports. Proc AMIA Symp. 2001;:105-9. 
 
