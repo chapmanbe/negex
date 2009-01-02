@@ -1,4 +1,4 @@
-NegEx uses terms to trigger and terminate negations, as described in the NegExAlgorithm page.
+#summary NegEx uses terms to trigger and terminate negations, as described in the NegExAlgorithm page.
 
 _When supplementing the list with terms you have found successful, please use the following conventions:
 
