@@ -1,4 +1,6 @@
+#summary potential improvement to ConText.
 #labels Phase-Implementation
+
 ||**Context Feature** ||**Suggestion** ||**Response** ||
 || Negation || Add pseudo-triggers using synonyms of "change", like "growth", "spread", as well as "no evidence of change/growth/spread". ||   ||
 || Hypothetical || The list of hypothetical triggers provided was rather short. I would suggest adding "avoidance of" and "avoid" to the hypothetical triggers list, so that sentence like this get caught: "Patient should try to avoid `<`CoreConcept>" and "Recommend avoidance of `<`CoreConcept>" ||   ||
