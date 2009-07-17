@@ -6,7 +6,9 @@ A physician annotated non-numeric clinical conditions in the reports (i.e., symp
 The file contains one sentence for every clinical condition found in the reports. For each condition, the physician annotated the following contextual properties:
 
 Negation status - values: affirmed, negated, possible.
+
 Temporality status - values: historical, recent, hypothetical.
+
 Experiencer - values: patient, other.
 
 You can use the set to evaluate your own version of NegEx by comparing your output from the sentence to the physician annotation of Negation status. Below, we list performance you should get on this set when applying the code distributed on this site. You can also use the set to evaluate ConText, which assigns not only negation status but also temporality status and experiencer. Downloadable versions of ConText will be posted soon.
