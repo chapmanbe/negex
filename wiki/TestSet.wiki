@@ -1,4 +1,4 @@
-#summary A set of sentences from 120 clinical reports of six types: emergency department, discharge summary, surgical pathology, radiology, operative notes, and echocardiogram.
+#summary A set of 2,376 sentences from 120 clinical reports of six types: emergency department, discharge summary, surgical pathology, radiology, operative notes, and echocardiogram.
 #labels Phase-QA
 
 A physician annotated non-numeric clinical conditions in the reports (i.e., symptoms, findings, and diseases not requiring a numeric value to be a valid condition). The sentences have been de-identified automatically using the De-ID System and have been randomized.
@@ -17,7 +17,9 @@ This file is available as a separate download but is also contained in the downl
 
 Please contact Wendy Chapman with any questions or suggestions for this set: wendy.w.chapman@gmail.com
 
+--------------------------------------------
 *Performance stats*
+
 _GenNegEx v1.2_
 
 GS Negated: 491.0
@@ -36,5 +38,5 @@ FN or False Affirmed: 20.0
 Recall: 0.9592668024439919
 Precision: 0.9326732673267327
 F-measure: 0.9457831325301205
-Correct Negated + Correct Affirmed/Total *100 = 97.72727272727273
+Correct Negated + Correct Affirmed/Total x100 = 97.72727272727273
 Total: 2376.0
