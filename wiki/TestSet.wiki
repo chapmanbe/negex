@@ -1,5 +1,14 @@
-#summary A set of sentences to test your own version of NegEx and make sure it is working according to the algorithm on this site
+#summary A set of sentences from 120 clinical reports of six types: emergency department, discharge summary, surgical pathology, radiology, operative notes, and echocardiogram. A physician annotated non-numeric clinical conditions in the reports (i.e., symptoms, findings, and diseases not requiring a numeric value to be a valid condition). The sentences have been de-identified automatically using the De-ID System and have been randomized.
 #labels Phase-QA
 
-_This is something we will be adding soon..._
+The file contains one sentence for every clinical condition found in the reports. For each condition, the physician annotated the following contextual properties:
+* Negation status - values: affirmed, negated, possible
+* Temporality status - values: historical, recent, hypothetical
+* Experiencer - values: patient, other
+
+ You can use the set to evaluate your own version of NegEx by comparing your output from the sentence to the physician annotation of Negation status. Below, we list performance you should get on this set when applying the code distributed on this site. You can also use the set to evaluate ConText, which assigns not only negation status but also temporality status and experiencer. Downloadable versions of ConText will be posted soon.
+
+This file is available as a separate download but is also contained in the downloadable code packages on the site.
+
+Please contact Wendy Chapman with any questions or suggestions for this set: wendy.w.chapman@gmail.com
 
