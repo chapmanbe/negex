@@ -3,11 +3,8 @@
 ConText is based on a negation algorithm called NegEx. ConText's input is a sentence with indexed clinical conditions; ConText's output for each indexed condition is the value for three contextual features:
 
 Negation: affirmed or negated.
-
 Temporality: recent, historical, or hypothetical.
-
 Experiencer: patient or other.
-
 
 *I. ConText Algorithm:*
  
