@@ -1,7 +1,7 @@
 #summary potential improvement to Negation.
 
 ||**Suggestion** ||**Response** ||**Version** ||
-|| Add “heme-negative              [PSEU]” to negation trigger list ||  ||   ||
+|| Add “heme-negative              [PSEU*]” to negation trigger list ||  ||   ||
 || Add “negative                       [POST]” || || in version 1.2  ||
 || Add “no findings to suggest             [PREN]” || ||  ||
 || Add “-ve for              [PREN]” ||  ||   ||
