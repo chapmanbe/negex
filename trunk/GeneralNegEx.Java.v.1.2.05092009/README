@@ -1,0 +1,144 @@
+##############################
+# Author: Imre Solti         
+# solti@u.washington.edu     
+#                            
+# Date: 12/24/2008           
+# Modified: 04/21/2009	     
+# Changed for new testkit    
+#                            
+# Modified: 04/22/2009       
+# Changed: Added Linux script.
+##############################
+
+GenNegEx -- A JAVA class to implement Wendy Chapman's NegEx algorithm.
+
+The original NegEx algorithm is published at:
+http://www.dbmi.pitt.edu/chapman/NegEx.html
+
+#####################
+# Motivation:       #
+#####################
+The motivation to release this code is two-fold.
+
+One goal is to make Wendy Chapman's NegEx
+algorithm more accessible for server side (that is non-GUI) programming for
+JAVA development for research purposes. The code was tested for research only
+and no enterprise purposes of any kind.
+
+The second goal is to try Ted Pedersen's suggestion for code sharing
+as he describes in the 2008 Computational Lingusitics article.
+Pedersen, T. "Empiricism is not a matter of faith." Computational Linguistics. 34: 465-470, 2008.
+http://www.d.umn.edu/~tpederse/Pubs/pedersen-last-word-2008.pdf
+
+
+######################
+# Files:             #
+######################
+This package includes 12 files.
+1) 	GenNegEx.java: Source code for the JAVA implementation of NegEx.
+	It can tag definitive negations only or both definitive and possible negations.
+	You will need to post process the output of GenNegEx. In CallKit.java
+	the only post processing is to print on the screen. In a real task
+	you might want to use simple regex rules to find the [NEGATED] and {POSSIBLE]
+	tags and for example delete those phrases that are tagged before running a 
+	concept extraction program.
+2) 	CallKit.java: Source code for a short program to demonstrate using GenNegEx.
+	It describes how to call GenNegEx from another program and the parameters
+	that modify the behavior of GenNegEx.
+3) 	negex_triggers.txt:
+	This file lists the rules that were used with CallKit.java to test GenNegEx.
+	Users are free to use anything as a rule but they should follow the style
+	of the example rule file.
+	Generate your rule file as needed.
+4) 	Apache_license.pdf: The package is licensed under Apache License 2.0:
+	http://www.apache.org/licenses/LICENSE-2.0.html
+5)	Sorter.java: Source code for the simple exchange sorting algorithm to sort the rules
+	by length in descending order. For faster sorting generate your own sorting class.
+6) 	Annotations-1-120-random.txt: The test kit. Format of the test kit and files
+	with sentences to check negations for follows this structure:
+	Number TAB Phrase TAB Sentence TAB Dummystring
+	The output will have the following structure:
+	Number TAB Phrase TAB Sentence TAB Dummystring TAB Sentence.with.tags TAB Decision TAB Scope.if.negated
+7)	accuracy.java that generates the statistics based on the output file for the
+	test kit.
+7)	README: This file.
+
+Plus four class files: Sorter.class, Call.class, accuracy.class and GenNegEx.class.
+
+
+#######################
+# License:	      #
+#######################
+Copyright 2008 Imre Solti
+
+Licensed under the Apache License, Version 2.0 (the "License"); 
+
+you may not use this file except in compliance with the License. You may obtain a copy of the License at 
+
+http://www.apache.org/licenses/LICENSE-2.0 
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and 
+limitations under the License. 
+
+
+######################
+# Notes:             #
+######################
+// NOTES:
+// Negation trigger terms are in the file: negex_triggers.txt.
+//
+// Java version 5.0 is required as 5.0 specific features are used.
+//
+// To call GenNegEx's function you need to supply parameters as defined:
+// g.negCheck(sentence, phrase, rules, negatePossible)
+// 1) sentence: String sentence you want to check for negations.
+// 2) phrase: String term we want to check for negation in the sentence.
+//    (for example, "diabetes", "sudden death syndrome", etc...). There is no
+//    limitation what can be a term. It can be CUI from the UMLS or an English word.
+// 3) rules: ArrayList of rules.
+//    IMPORTANT not to have extra
+//    white spaces in rule lines because rules are sorted (in GenNegEx) by length
+//    in descending order so longest rules will be matched first.
+// 4) negatePossible: boolean and if set to "true" then POSSIBLE as defined by Chapman will be detected
+//    and tagged as [POSSIBLE]. If negatePossible is set to "false" then possible is not
+//    tagged.
+//
+// Tags are:    [PREN] - Prenegation rule tag
+//              [POST] - Postnegation rule tag
+//              [PREP] - Pre possible negation tag
+//              [POSP] - Post possible negation tag
+//              [PSEU] - Pseudo negation tag
+//              [CONJ] - Conjunction tag
+//              [PHRASE] - Term is rcognized from the term list, we search negation for but was NOT negated
+//              [NEGATED] - Term was recognized from term list, and it was found being negated
+//              [POSSIBLE] - Term was recognized from term list, and was found as possible negation
+//
+//
+
+########################
+# To run the example:  #
+########################
+java CallKit negex_triggers.txt Annotations-1-120-random.txt > CallKit.results
+java accuracy CallKit.results
+
+# Using the test kit, printout should look like:
+GS Negated: 491.0
+GS Affirmed: 1885.0
+GS Possible: 0.0
+ 
+System Negated: 494.0
+System Affirmed: 1872.0
+System Possible: 10.0
+ 
+TP or Correct Negated: 471.0
+TN or Correct Affirmed: 1852.0
+FP or False Negated: 33.0
+FN or False Affirmed: 20.0
+ 
+Recall: 0.9592668024439919
+Precision: 0.9345238095238095
+F-measure: 0.9467336683417085
+Correct Negated + Correct Affirmed/Total *100 = 97.76936026936028
+Total: 2376.0
+
