@@ -1,11 +1,11 @@
 import ez_setup
 ez_setup.use_setuptools()
 from setuptools import setup, find_packages
-setup(name='pyContext',
-      version='0.2.5',
+setup(name='pyConText',
+      version='0.2.6',
       description='Python ConText',
       author='Brian Chapman',
-      author_email='chapbe@pitt.edu',
+      author_email='brchapman@ucsd.edu',
       url='http://www.dbmi.pitt.edu',
       #py_modules = pyn,
       packages=find_packages('src'),
