@@ -11,7 +11,7 @@
 #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #See the License for the specific language governing permissions and
 #limitations under the License.
-import pyContext.pycontext as pycontext
+import pycontext
 import networkx as nx
 
 class pyConTextGraph(object):

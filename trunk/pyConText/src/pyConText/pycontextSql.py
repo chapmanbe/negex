@@ -17,8 +17,8 @@ For the lack of knowing a better way of doing this, the sentences are dumped int
 sqlite database.
 """
 import sqlite3 as sqlite
-import pyContext.pycontext as pycontext
-
+#import pyContext.pycontext as pycontext
+import pycontext
 class pycontextSql(object):
     def __init__(self, db = None ):
         """
