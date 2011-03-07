@@ -25,40 +25,18 @@ from optparse import OptionParser
 import sqlite3 as sqlite
 
 import datetime, time
-import pyContext.pycontext as pycontext
-import pyContext.helpers as helpers
-from pyContext.pycontextSql import pycontextSql
-import pyContext.pycontextNX as pnx
-from pyContext.itemData import *
+import pyConText.pycontext as pycontext
+import pyConText.helpers as helpers
+from pyConText.pycontextSql import pycontextSql
+import pyConText.pycontextNX as pnx
+from pyConText.itemData import *
 from peItemData import *
 import cPickle
-"""helper functions to compute final classifications"""
-def qualityState(value):
-    if(value):
-        return "Not Diagnostic"
-    else:
-        return "Diagnostic"
-def diseaseState(value):
-    if( value ):
-        return "Pos"
-    else:
-        return "Neg"
-def uncertaintyState(value):
-    if( value ):
-        return "Yes"
-    else:
-        return "No"
-def notModifiedByOR(terms,modifier):
-    for term in terms:
-        if(not term.isModifiedBy(modifier)):
-            return True
-    return False
-def historicalState(value):
-    if( value ):
-        return "Old"
-    else:
-        return "New"
+"""helper functions to compute final classification accuracies by comparison
+to human annotations"""
+
 def getParser():
+    """Generates command line parser for specifying database and other parameters"""
 
     parser = OptionParser()
     parser.add_option("-d","--db",dest='dbname',
@@ -73,7 +51,17 @@ def getParser():
 
 
 class PEContext(object):
-    def __init__(self, dbname, test = True):
+    """This is the class definition that will contain the majority of processing
+    algorithms for peFinder.
+    
+    The constructor takes as an argument the name fo an SQLite database containing
+    the relevant information.
+    """
+    def __init__(self, dbname):
+        """create an instance of a PEContext object associated with the SQLite
+        database.
+        dbname: name of SQLite database
+        """
 
         # Define queries to select data from the SQLite database
         # this gets the reports we will process
@@ -101,30 +89,13 @@ class PEContext(object):
         raw_input('continue')
         t = time.localtime()
         d = datetime.datetime(t[0],t[1],t[2])
-
-        # create dictionaries to store the agreement matricies for the disease,
-        # quality and uncertainty states
-        self.usMatrix = {('Yes','Yes'):0,('Yes','No'):0,('No','Yes'):0,('No','No'):0}
-        self.dsMatrix = {('Pos','Pos'):0,('Pos','Neg'):0,('Neg','Pos'):0,('Neg','Neg'):0}
-        self.qsMatrix = {('Diagnostic','Diagnostic'):0,('Diagnostic','Not Diagnostic'):0,
-                         ('Not Diagnostic','Diagnostic'):0,('Not Diagnostic','Not Diagnostic'):0}
-        self.hsMatrix = {('Old','Old'):0,('Old','New'):0,('New','Old'):0,('New','New'):0}
         
+        # create context objects for each of the questions we want to be answering
         self.context = {"disease":pycontext.pycontext(),
                         "quality":pycontext.pycontext(),
                         "quality2":pycontext.pycontext()}
 
-        # Create files for storing problem cases
-        if( not test ):
-            suffix = "problems3"
-        else:
-            suffix = "testProblems"
-        self.f1 = open(dbname+".ds%s.txt"%suffix,'w')
-        self.f2 = open(dbname+".qs%s.txt"%suffix,'w')
-        self.f3 = open(dbname+".us%s.txt"%suffix,'w')
-        self.f4 = open(dbname+".all%s.txt"%suffix,"w")
-        self.f5 = open(dbname+".hs%s.txt"%suffix,"w")
-        self.f6 = open(dbname+".disagreements%s.pckle"%suffix,"wb")
+
         rsltsDB = dbname+"Results.db"
         if( os.path.exists(rsltsDB) ):
             os.remove(rsltsDB)
@@ -140,6 +111,8 @@ class PEContext(object):
 
 
         # Create the itemData object to store the modifiers for the  analysis
+        # starts with definitions defined in pyConText and then adds
+        # definitions specific for peFinder
         self.modifiers = {"disease":itemData.itemData()}
         self.modifiers["disease"].extend(pseudoNegations)
         self.modifiers["disease"].extend(definiteNegations)
@@ -172,22 +145,10 @@ class PEContext(object):
         self.targets["quality2"] = itemData.itemData()
         self.targets["quality2"].extend(artifacts)
         self.temporalCount = 0
-        self.breakCases = set([320])
         self.models = {}
-        self.problemCases = []
-        self.disagreements = {"ds":[],"qs":[],"us":[],"hs":[]}
-
-    def saveDisagreements(self):
-        cPickle.dump(self.disagreements,self.f6)
-        self.f6.close()
 
     def splitTypos(self):
         pass
-    def setReportDB(self, num, mode = True):
-        if( mode ):
-            self.dbName="s%03d.db"%num            
-        else:
-            self.dbName = None
     def setOutput(self, mode = "disease"):
         if( self.dbName != None ):
             self.dbn = mode+self.dbName                        
@@ -195,19 +156,9 @@ class PEContext(object):
                 os.remove(self.dbn)
         else:
             self.dbn = None
-    def setBreakCases(self, cases):
-        try:
-            self.breakCases.extend(cases)
-        except:
-            self.breakCases.append(cases)
-    def getReaderStates(self, num):
-        self.cursor.execute(self.query2,(num,))
-        self.b = self.cursor.fetchone() # b contains diseaseState,qualityState,CDS,diseaseUncertainty,CQS for this report
-        if( self.b ):
-            self.cursor.execute(self.query3,(num,))
-            self.c = self.cursor.fetchall() # these are the individual states listed by the readers
+
     def analyzePEReport(self, report, mode, modFilters = None ):
-        """given a radiology report, creates a pyConTextSql
+        """given an individual radiology report, creates a pyConTextSql
         object that contains the context markup
 
         report: a text string containing the radiology reports
@@ -219,7 +170,9 @@ class PEContext(object):
             targets = self.targets.get(mode)
             modifiers = self.modifiers.get(mode)
             if modFilters == None :
-                modFilters = ['indication','pseudoneg','probable_negated_existence','definite_negated_existence', 'probable_existence', 'definite_existence', 'historical']
+                modFilters = ['indication','pseudoneg','probable_negated_existence',
+                              'definite_negated_existence', 'probable_existence',
+                              'definite_existence', 'historical']
             context.reset()
             terms = itemData.itemData(targets)
             sentences = helpers.sentenceSplitter(report)
@@ -237,7 +190,10 @@ class PEContext(object):
                 fo.write("Post modifiers\n%s\n"%context.__str__())
                 fo.write("*"*42+"\n")
                 pnxobj = pnx.pyConTextGraph(context)
-                pnxobj.drawGraph("pedoc%d_%s_%s"%(self.currentCase,context.getCurrentSentenceNumber(),mode), format="png")
+                pnxobj.drawGraph("pedoc%d_%s_%s"%\
+                                 (self.currentCase,
+                                  context.getCurrentSentenceNumber(),
+                                  mode), format="png")
                 #print context
                 context.commit()
                 count += 1
@@ -299,61 +255,27 @@ class PEContext(object):
                     not self.models["disease"].query("where probable_negated_existence == 'YES'") and\
                     not self.models["disease"].query("where definite_negated_existence == 'YES'") and\
                     not self.models["disease"].query("where probable_existence == 'YES'") ) )
-        us = uncertaintyState(bool( self.models["disease"].query("where probable_negated_existence == 'YES' or probable_existence == 'YES' " ) or\
-                                   self.models["disease"].query("where probable_existence == 'YES' and definite_negated_existence == 'YES'") or\
-                                    (self.quality_state == "Not Diagnostic" and self.disease_state == 'Neg') or usd) )
+        us = uncertaintyState(bool(
+            self.models["disease"].query("where probable_negated_existence == 'YES' or probable_existence == 'YES' " ) or\
+            self.models["disease"].query("where probable_existence == 'YES' and definite_negated_existence == 'YES'") or\
+            (self.quality_state == "Not Diagnostic" and self.disease_state == 'Neg') or usd) )
         
-        if( us != self.b[3] ):
-            self.f3.write("%d\nusers(%s):algorithm(%s)\n\n%s\n%s\n"%\
-                     (self.currentCase,self.b[3],us,self.models["disease"],"*"*42))
-
-            self.disagreements["us"].append(self.currentCase)
-        self.usMatrix[(self.b[3],us)] += 1
         self.uncertainty_state = us
     def determineHistoricalState(self):
         self.historical_state = "NULL"
         hs = historicalState(bool(self.models["disease"].query("where historical =='YES'")))
-        self.cursor.execute("""select temporalState from temporal_consensus_states where psid_id=?""",(self.currentCase,))
-        tcs = self.cursor.fetchone()
-        self.historical_state = hs
-        if(tcs):
-            self.temporalCount += 1
-            if( tcs[0] == u'Mixed' or tcs[0] == u'Old'):
-                user_tcs = 'Old'
-            elif( tcs[0] == u'New' ):
-                user_tcs = 'New'
-            try:
-                self.hsMatrix[(user_tcs,hs)] += 1
-                if( hs != user_tcs ):
-                    self.disagreements['hs'].append(self.currentCase)
-                    self.f5.write("%d:\nuser_tcs(%s):algorithm(%s)\n%s\n"%(self.currentCase,user_tcs,hs,self.models["disease"]))
-                
-            except:
-                pass
+        
     def printContext(self):
-        print "%6d\t%s\t%s\t%s\t%s\t%s\t%s"%(
+        print "%6d\t%s\t%s\t%s"%(
                         self.currentCase,
-                        self.b[2].ljust(10).upper(),
                         self.disease_state.ljust(10).lower(),
-                        self.b[4].ljust(20).upper(),
                         self.quality_state.ljust(20).lower(),
-                        self.b[3].ljust(5).upper(),
                         self.uncertainty_state.ljust(5).lower())
-    def writeCombinedErrors(self):
-        if(  self.uncertainty_state != self.b[3] or 
-             self.disease_state != self.b[2] or 
-             self.quality_state != self.b[4]):
-            f4.write("%6d\t%s\n"%(self.currentCase,self.currentText))
-            f4.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(
-                self.b[2].ljust(10).upper(),
-                self.disease_state.ljust(10).lower(),
-                self.b[4].ljust(20).upper(),
-                self.quality_state.ljust(20).lower(),
-                self.b[3].ljust(5).upper(),
-                self.uncertainty_state.ljust(5).lower(),
-                self.c))
 
     def processReports(self):
+        """For the selected reports (training or testing) in the database,
+        process each report with peFinder
+        """
         count = 0
         for r in self.reports:
             self.currentCase = r[0]
@@ -365,45 +287,34 @@ class PEContext(object):
                 pass #raw_input('continue')
             self.getReaderStates(self.currentCase)
             self.setReportDB(self.currentCase)
-            if( self.b ):
-                print self.currentCase
-                # change program to only return one object
-                # Essentialy move unmodifiedDisease into modifiedDiseae with a key of ''
-                
-                # I think we need to add a reference to the sentence to each tagged obect
-                self.createModel(self.currentText, "disease", ['indication','probable_existence','definite_existence',
-                                           'historical','pseudoneg','definite_negated_existence','probable_negated_existence'])
-                self.createModel(self.currentText, "quality",['quality_feature'])
-                self.createModel(self.currentText, "quality2", [])
-                try:
-                    if( 'NULL' not in self.b ):
-                        self.determineDiseaseState()
-                        self.determineQualityState()
-                        self.determineUncertaintyState()
-                        self.determineHistoricalState()
-                        count += 1
-                except Exception, error:
-                    print "failed to process report",error
-                    self.problemCases.append(self.currentCase)
-                    raw_input('continue')
-                self.recordResults()  
+
+            print self.currentCase
+            # change program to only return one object
+            # Essentialy move unmodifiedDisease into modifiedDiseae with a key of ''
+            
+            # I think we need to add a reference to the sentence to each tagged obect
+            self.createModel(self.currentText, "disease", ['indication','probable_existence','definite_existence',
+                                       'historical','pseudoneg','definite_negated_existence','probable_negated_existence'])
+            self.createModel(self.currentText, "quality",['quality_feature'])
+            self.createModel(self.currentText, "quality2", [])
+            try:
+                if( 'NULL' not in self.b ):
+                    self.determineDiseaseState()
+                    self.determineQualityState()
+                    self.determineUncertaintyState()
+                    self.determineHistoricalState()
+                    count += 1
+            except Exception, error:
+                print "failed to process report",error
+                self.problemCases.append(self.currentCase)
+                raw_input('continue')
+            self.recordResults()  
         print "processed %d cases"%count
-        print "%d problem cases"%len(self.problemCases)
     
     def recordResults(self):
         query = """INSERT INTO results (id,disease, uncertainty, historical, quality) VALUES (?,?,?,?,?)"""
         self.resultsCursor.execute(query,(self.currentCase,self.disease_state,self.uncertainty_state,self.historical_state,self.quality_state,))
         
-    def getResults(self):     
-        print "Disease results", self.dsMatrix
-        print "Quality results", self.qsMatrix
-        print "Uncertainty results",self.usMatrix
-        print "Temporal results",self.hsMatrix,"count=",self.temporalCount
-        
-        getStats(self.dsMatrix,label='Disease State')
-        getStats(self.qsMatrix,neg="Diagnostic",pos="Not Diagnostic",label='Quality State') # switched positive/negative states
-        getStats(self.usMatrix,pos='Yes',neg='No',label='Uncertainty State')
-        getStats(self.hsMatrix,neg="New",pos="Old",label='Historical State')
         
     def cleanUp(self):     
         self.f1.close()
