@@ -18,7 +18,7 @@ sqlite database.
 """
 import sqlite3 as sqlite
 #import pyContext.pycontext as pycontext
-import pycontext
+import pyConTextGraph as pycontext
 class pycontextSql(object):
     def __init__(self, db = None ):
         """
@@ -65,23 +65,21 @@ class pycontextSql(object):
                                     (i,context.getText(),))
             self.__cursor.execute("select last_insert_rowid() from sentences")
             sentid = i # self.__cursor.fetchone()[0]
-            for j in range(context.getNumMarkedTargets()):    
+            for tag in context.getConTextModeNodes("target"):    
                 
-                term = context.getMarkedTarget(j)
                 query = []
                 values = []
                 for modfilter in modifierFilters:
-                    modifier = \
-                    term.isModifiedBy(modfilter,returnModifier=True)
+                    modifier = context.isModifiedBy(tag, modfilter)
                     if( modifier ):
                         query.extend(["'%s'"%modfilter,"'%s TERM'"%modfilter])
-                        values.extend(['YES',modifier.__str__()]) # modifier.getTerm()
+                        values.extend(['YES',modifier.__str__()]) 
                 if( not query ):
                     self.__cursor.execute("""INSERT INTO foundTargets (sentence,term,unmodified) VALUES (?,?,?)""",
-                                            (sentid,term.getTerm(),'YES',))
+                                            (sentid,tag.getLiteral(),'YES',))
                 else:
                     values.insert(0,sentid)
-                    values.insert(1,term.__str__())
+                    values.insert(1,tag.__str__())
                     v = ','.join(query)
                     p = ','.join(["?"]*len(query))
                     q = """INSERT INTO foundTargets (sentence,term,%s) VALUES (?,?,%s)"""%(v,p)
