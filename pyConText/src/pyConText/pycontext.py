@@ -160,48 +160,42 @@ class termObject(object):
             return None
     def isModifiedByOr(self,terms):
         """"returns true if self is modified by any term in the list terms"""
-        try:
-            if( not self.__modifiedBy ):
-                return False
+        if( not self.__modifiedBy ):
+            return False
 
-            for t in terms:
-                if( self.isModifiedBy(t) ):
-                    return True
-            return False
-        except Exception, error:
-            return False
+        for t in terms:
+            if( self.isModifiedBy(t) ):
+                return True
+        return False
+
 
     def isModifiedByAnd(self,terms):
         """return True if self is modified by all items in the list terms"""
-        try:
-            if( not self.__modifiedBy ):
-                return False
-            if( type(terms) == type('') ):
-                return self.isModifiedBy(terms)
-            for t in terms:
-                if( not self.isModifiedBy(t) ):
-                    return False
-            return True
-        except Exception, error:
+        if( not self.__modifiedBy ):
             return False
+        if( type(terms) == type('') ):
+            return self.isModifiedBy(terms)
+        for t in terms:
+            if( not self.isModifiedBy(t) ):
+                return False
+        return True
+
     def isModifiedBy(self,term, returnModifier=False):
         """tests whether self is modified by term. Optionally return the actual modifier"""
-        try:
-            if( not self.__modifiedBy ):
-                return False
-            if( type(term) != type('') ):
-                return self.isModifiedByAnd(term)
-            keys = self.__modifiedBy.keys()
-            for k in keys:
-                modifier = self.__modifiedBy[k]
-                if( term.lower() in modifier.getCategory().lower() ):
-                    if( returnModifier):
-                        return modifier
-                    else:
-                        return True 
+        if( not self.__modifiedBy ):
             return False
-        except Exception, error:
-            return False
+        if( type(term) != type('') ):
+            raise TypeError("term must be a string")
+        keys = self.__modifiedBy.keys()
+        for k in keys:
+            modifier = self.__modifiedBy[k]
+            if( term.lower() in modifier.getCategory().lower() ):
+                if( returnModifier):
+                    return modifier
+                else:
+                    return True 
+        return False
+
     def getModifiers(self):
         """
         returns the dictionary of objects modifying the current object.
@@ -326,30 +320,26 @@ class pycontext(object):
         """
         set the current context to sentence num in the archive
         """
-        try:
-            self.__rawTxt = copy.copy(self.__archive[num][0])
-            self.__txt = copy.copy(self.__archive[num][1])
-            self.__markedTargets = copy.copy(self.__archive[num][2])
-            self.__markedModifiers = copy.copy(self.__archive[num][3])
-            self.__scope = copy.copy(self.__archive[num][4])
-            self.__SCOPEUPDATED = copy.copy(self.__archive[num])
-        except Exception, error:
-            print "failed in setSentence", error
+        self.__rawTxt = copy.copy(self.__archive[num][0])
+        self.__txt = copy.copy(self.__archive[num][1])
+        self.__markedTargets = copy.copy(self.__archive[num][2])
+        self.__markedModifiers = copy.copy(self.__archive[num][3])
+        self.__scope = copy.copy(self.__archive[num][4])
+        self.__SCOPEUPDATED = copy.copy(self.__archive[num])
+
                                         
     def setTxt(self,txt=''):
         """
         sets the current txt to txt and resets the current attributes to empty
         values, but does not modify the object archive
         """
-        try:
-            self.__rawTxt = txt
-            self.__txt = None
-            self.__markedTargets = []
-            self.__markedModifiers = []
-            self.__scope = None
-            self.__SCOPEUPDATED = False
-        except Exception, error:
-            print "failed in setTxt", error
+        self.__rawTxt = txt
+        self.__txt = None
+        self.__markedTargets = []
+        self.__markedModifiers = []
+        self.__scope = None
+        self.__SCOPEUPDATED = False
+        
     def getText(self):
         return self.__txt
     def getNumberSentences(self):
@@ -429,12 +419,10 @@ class pycontext(object):
         term[0]--the term to tag
         term[1]--the category for the tag (e.g. "EXCLUDE")
         term[2]--a regular expression to express a general form of term. Pass an empty string if not desired"""
-        try:
-            self.__markedTargets = []
-            for term in terms:
-                self.__markedTargets.extend(self.markText(term,mode=objType))
-        except Exception, error:
-            print "failed in markTargets", error
+        self.__markedTargets = []
+        for term in terms:
+            self.__markedTargets.extend(self.markText(term,mode=objType))
+
     def markModifiers(self,terms,objType=tagObject):
         """tags the sentence for a list of terms
         terms: a list of terms each term is a tuple with the following two elements: 
@@ -442,16 +430,12 @@ class pycontext(object):
         term[1]--the category for the tag (e.g. "EXCLUDE")
         term[2]--a regular expression to express a general form of term. Pass an empty string if not desired
         term[3]--a rule for the tag"""
-        try:
-            self.__markedModifiers = []
-            for term in terms:
-                if( term[0] == u'positive examination for' ):
-                    pass
-                self.__markedModifiers.extend(self.markText(term,mode=tagObject))
-            self.__SCOPEUPDATED = False
+        self.__markedModifiers = []
+        for term in terms:
+            self.__markedModifiers.extend(self.markText(term,mode=tagObject))
+        self.__SCOPEUPDATED = False
                                 
-        except Exception, error:
-            pass
+
 
          
     def markText(self,term, mode=termObject, ignoreCase=True ):
@@ -467,35 +451,32 @@ class pycontext(object):
         term[1]--the category
         term[2]--a regular expression or empty string
         term[3]--a rule (if mode='Modifier')"""
-        try:
             
-            if( not self.__txt ):
-                self.getCleanTxt()
+        if( not self.__txt ):
+            self.getCleanTxt()
 
-            # See if we have already created a regular expression
-            if( term[0] == u"bolus"):
-                pass
-            if(not self.res.has_key(term[0]) ):
-                if(not term[2]):
-                    regExp = term[0]
-                else:
-                    regExp = term[2]
-                r = re.compile(regExp, re.IGNORECASE)
-                self.res[term[0]] = r
+        # See if we have already created a regular expression
+
+        if(not self.res.has_key(term[0]) ):
+            if(not term[2]):
+                regExp = term[0]
             else:
-                r = self.res[term[0]]
-            iter = r.finditer(self.__txt)
-            terms=[]
-            for i in iter:
-                tO = mode(term[0], term[1],term[2],term[3],self.__scope)
-        
-                tO.setStart(i.start())
-                tO.setSpan(i.span())
-                tO.setPhrase(i.group())
-                terms.append(tO)
-            return terms
-        except Exception, error:
-            print "failed in markText", error
+                regExp = term[2]
+            r = re.compile(regExp, re.IGNORECASE)
+            self.res[term[0]] = r
+        else:
+            r = self.res[term[0]]
+        iter = r.finditer(self.__txt)
+        terms=[]
+        for i in iter:
+            tO = mode(term[0], term[1],term[2],term[3],self.__scope)
+    
+            tO.setStart(i.start())
+            tO.setSpan(i.span())
+            tO.setPhrase(i.group())
+            terms.append(tO)
+        return terms
+
     def pruneMarks(self):    
         """
         prune Marked objects by deleting any objects that lie within the span of
@@ -552,10 +533,9 @@ class pycontext(object):
         """
         return the ith marked target
         """
-        try:
-            return self.__markedTargets[i]
-        except:
-            return None            
+
+        return self.__markedTargets[i]
+           
 
 
         
