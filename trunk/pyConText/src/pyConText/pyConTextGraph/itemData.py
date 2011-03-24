@@ -192,8 +192,7 @@ definiteNegations = itemData(
 ["rules her out for","DEFINITE_NEGATED_EXISTENCE",r"""rules\s(him|her)\sout\sfor""","forward"],
 ["with no","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["not had","DEFINITE_NEGATED_EXISTENCE","","forward"],
-["rules him out","DEFINITE_NEGATED_EXISTENCE",r"""rules\s(him|her)\sout""","forward"],
-["rules the patient out","DEFINITE_NEGATED_EXISTENCE","","forward"],
+["rules him out","DEFINITE_NEGATED_EXISTENCE",r"""rules\s(him|her|the\spatient)\sout""","forward"],
 ["did rule the patient out for","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["did rule out for","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["did rule him out against","DEFINITE_NEGATED_EXISTENCE","","forward"],
@@ -303,6 +302,7 @@ historicals = itemData(
 ["change in","HISTORICAL","","forward"],
 ["prior","HISTORICAL","","bidirectional"],
 ["diminished","HISTORICAL","","bidirectional"],
+["again noted","HISTORICAL","","bidirectional"],
 ["sequelae of","HISTORICAL","","forward"],
 ["prior study", "HISTORICAL","","bidirectional"],
 )
@@ -402,28 +402,25 @@ conjugates = itemData(
 ["as an secondary origin of","CONJ","","terminate"])
 
 probables = itemData(
-["seen best","PROBABLE_EXISTENCE","",""], # fixes pedoc #126 uncertainty
+["seen best","PROBABLE_EXISTENCE","",""], 
 ["consistent with","PROBABLE_EXISTENCE","","forward"],
 ["evidence","PROBABLE_EXISTENCE","","forward"],
-["suggestive","PROBABLE_EXISTENCE","","forward"],
-#["not excluded", "POST-UNCERTAINTY",r"""not\sexcluded""","backward"], #fixes pedoc #139
-["appear","PROBABLE_EXISTENCE","\bappear\b","bidirectional"], # fixes pedoc #270 uncertainty
-#["definite","DEFINITE EXISTENCE","","forward"],
+["suggestive","PROBABLE_EXISTENCE","suggest|suggestive|suggests","forward"],
+["appear","PROBABLE_EXISTENCE","\bappear\b","bidirectional"],
 ["may represent","PROBABLE_EXISTENCE",r"""(may|might)\srepresent""","forward"],
 ["appears to be","PROBABLE_EXISTENCE","","forward"],
 ["compatible with","PROBABLE_EXISTENCE","","forward"],
 ["convincing","PROBABLE_EXISTENCE","","forward"],
-["suggest","PROBABLE_EXISTENCE",r"\bsuggest\b","forward"],
 ["represents","PROBABLE_EXISTENCE","","forward"],
 ["certain if","UNCERTAINTY","","forward"],
 ["suspicious","PROBABLE_EXISTENCE","","forward"],
-["seen","PROBABLE_EXISTENCE",r"(seen|visualized|observed)","backward"],
-["noted","PROBABLE_EXISTENCE","","backward"],
+["seen","PROBABLE_EXISTENCE",r"(seen|visualized|observed|noted)","backward"],
 ["worrisome","PROBABLE_EXISTENCE","","forward"],
 ["identified","PROBABLE_EXISTENCE","","backward"],
 ["suspicous","PROBABLE_EXISTENCE","","forward"],
 ["likely","PROBABLE_EXISTENCE","","bidirectional"],
-["versus","PROBABLE_EXISTENCE","","bidirectional"],
+["versus","PROBABLE_EXISTENCE","versus|vs","bidirectional"],
+["possible","PROBABLE_EXISTENCE","possible|possibly","bidirectional"],
 ["equivocal","PROBABLE_EXISTENCE","",'bidirectional']
 )
 

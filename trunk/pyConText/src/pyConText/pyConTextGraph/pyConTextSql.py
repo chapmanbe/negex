@@ -19,7 +19,7 @@ sqlite database.
 import sqlite3 as sqlite
 #import pyContext.pycontext as pycontext
 import pyConTextGraph as pycontext
-class pycontextSql(object):
+class pyConTextSql(object):
     def __init__(self, db = None ):
         """
         db is an optional filename for the database. If specified, a databse with the
