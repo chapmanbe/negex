@@ -16,12 +16,14 @@ def sentenceSplitter(txt):
     txt = txt.split()
     sentences = []
     wordLoc = 0
+    digits = set('0123456789')
+    
     while(wordLoc < len(txt) ):
         currentWord = txt[wordLoc]
         if( currentWord[-1] in '.?!' ):
             if( currentWord in  ['.','Dr.','Mr.','Mrs','Ms.','M.D.','Ph.D.','D.M.D.','R.N.','B.A.','A.B.','B.S.','q.','viz.','e.g.']):
                 wordLoc += 1
-            elif( set('0123456789').intersection(currentWord) ):
+            elif( set('0123456789').intersection(currentWord) and not set('()').intersection(currentWord)):
                 wordLoc += 1
             else:
                 sentences.append(' '.join(txt[:wordLoc+1])) 

@@ -239,8 +239,11 @@ class pyConText(object):
     #        txt += term.__str__()+"\n"
     #    txt += "-"*60
     #    return txt
-    def getConTextModeNodes(self,mode):
-        nodes = [n for n in self.__graph.nodes() if n.getConTextCategory() == mode]
+    def getConTextModeNodes(self,mode, currentGraph = True ):
+        if( currentGraph ):
+            nodes = [n for n in self.__graph.nodes() if n.getConTextCategory() == mode]
+        else:
+            nodes = [n for n in self.__documentGraph.nodes() if n.getConTextCategory() == mode]
         return nodes
     def updateScopes(self):
         """
@@ -310,13 +313,22 @@ class pyConText(object):
         prune Marked objects by deleting any objects that lie within the span of
         another object. Currently modifiers and targets are treated separately
         """
-        #self.__prune_marks(self.getConTextModeNodes("modifier"))
-        #self.__prune_marks(self.getConTextModeNodes("target"))
         self.__prune_marks(self.__graph.nodes())
     def dropInactiveModifiers(self):
         mnodes = [ n for n in self.getConTextModeNodes("modifier") if self.__graph.degree(n) == 0]
         self.__graph.remove_nodes_from(mnodes)
-        
+    def pruneModifierRelationships(self):
+        """Initially modifiers may be applied to multiple targets. This function
+        computes the text difference between the modifier and each modified
+        target and keeps only the minimum distance relationship"""
+        modifiers = self.getConTextModeNodes("modifier")
+        for m in modifiers:
+            modifiedBy = self.__graph.successors(m)
+            if( modifiedBy and len(modifiedBy) > 1 ):
+                minm = min([ (m.dist(mb),mb) for mb in modifiedBy ])
+                edgs = self.__graph.edges(m)
+                edgs.remove((m,minm[1]))
+                self.__graph.remove_edges_from(edgs)
         
     def __prune_marks(self, marks):
         if( len(marks) < 2 ):
@@ -347,7 +359,6 @@ class pyConText(object):
         
         Loop through the marked targets and for each target apply the modifiers
         """
-        # make sure markedModifiers is sorted
         if( not self.__SCOPEUPDATED ):
             self.updateScopes()
         targets = self.getConTextModeNodes("target")
@@ -367,16 +378,20 @@ class pyConText(object):
         """
         return len(self.getConTextModeNodes("target"))
            
-    def getModifiers(self, node):
-        return self.__graph.predecessors(node)
-    def isModifiedBy(self,node, modFilter):
+    def getModifiers(self, node, currentGraph = True):
+        if( currentGraph ):
+            return self.__graph.predecessors(node)
+        else:
+            return self.__documentGraph.predecessors(node)
+    def isModifiedBy(self,node, modFilter, currentGraph = True):
         """tests whether self is modified by term. Return modifier if true"""
-        pred = self.getModifiers(node)
+        pred = self.getModifiers(node, currentGraph)
         for p in pred:
             if( modFilter.lower() == p.getCategory().lower() ):
                 return p
                  
         return None
+
     def computeDocumentGraph(self):
         self.__documentGraph = nx.DiGraph()
         for key in self.__archive.keys():
