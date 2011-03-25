@@ -61,7 +61,22 @@ class itemData(list):
             
     def __validate(self,data):
         return isinstance(data,contextItem)
-        
+     
+    def dropByLiteral(self,value):
+        """drop any contextItems with literal matching value
+        """
+        # must be a more functional way to write this
+        j = 0
+        while( True ):
+            try:
+                itm = self.__getitem__(j)
+                if( itm.getLiteral() == value ):
+                    self.__delitem__(j)
+                else:
+                    j += 1
+            except:
+                break
+            
     def append(self,data):
         if(self.__validate(data)):
             itm = dta
@@ -74,6 +89,13 @@ class itemData(list):
         else:
             itm = contextItem(data)
         super(itemData,self).insert(index,itm)
+    def prepend(self,iterable):
+        for i in iterable:
+            if( self.__validate(i) ):
+                itm = i
+            else:
+                itm = contextItem(i)
+            super(itemData,self).insert(0,itm)
     def extend(self,iterable):
         for i in iterable:
             if( self.__validate(i) ):
@@ -86,7 +108,7 @@ class itemData(list):
 
 probableNegations = itemData(
 ["can rule out","PROBABLE_NEGATED_EXISTENCE","","forward"],
-["cannot be excluded","PROBABLE_NEGATED_EXISTENCE",r"""(cannot|can\snot)\sbe\sexcluded""","backward"],
+["cannot be excluded","PROBABLE_NEGATED_EXISTENCE",r"""cannot\sbe\s((entirely|completely)\s)(excluded|ruled out)""","backward"],
 ["is not excluded","PROBABLE_NEGATED_EXISTENCE",r"""(is|was|are|were)\snot\sexcluded""",'backward'],
 ["adequate to rule the patient out against","PROBABLE_NEGATED_EXISTENCE","","forward"],
 ["can rule him out","PROBABLE_NEGATED_EXISTENCE","","forward"],
