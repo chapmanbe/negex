@@ -209,7 +209,7 @@ class pyConText(object):
         """
         self.__rawTxt = txt
         self.__txt = None
-        self.__graph = nx.DiGraph()
+        self.__graph = nx.DiGraph(sentence=txt)
         self.__scope = None
         self.__SCOPEUPDATED = False
         
@@ -241,9 +241,9 @@ class pyConText(object):
     #    return txt
     def getConTextModeNodes(self,mode, currentGraph = True ):
         if( currentGraph ):
-            nodes = [n for n in self.__graph.nodes() if n.getConTextCategory() == mode]
+            nodes = [n[0] for n in self.__graph.nodes(data=True) if n[1]['category'] == mode]
         else:
-            nodes = [n for n in self.__documentGraph.nodes() if n.getConTextCategory() == mode]
+            nodes = [n[0] for n in self.__documentGraph.nodes(data=True) if n[1]['category'] == mode]
         return nodes
     def updateScopes(self):
         """
@@ -272,7 +272,7 @@ class pyConText(object):
         if( not items ):
             return
         for item in items:
-            self.__graph.add_nodes_from(self.markItem(item, ConTextMode=mode))
+            self.__graph.add_nodes_from(self.markItem(item, ConTextMode=mode), category=mode)
 
                                 
     def markItem(self,item, ConTextMode="target", ignoreCase=True ):
@@ -394,7 +394,9 @@ class pyConText(object):
 
     def computeDocumentGraph(self):
         self.__documentGraph = nx.DiGraph()
+        ic = 0
         for key in self.__archive.keys():
             g = self.__archive[key]["graph"]
             self.__documentGraph = nx.union(self.__documentGraph,g)
+
     
