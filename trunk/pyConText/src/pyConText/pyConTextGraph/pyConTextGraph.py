@@ -61,7 +61,8 @@ class tagObject(object):
             self.__scope[1] = self.getSpan()[0]
             
     def parseRule(self):
-        """parse the rule for the associated 
+        """parse the rule for the associated"""
+        pass
     def getScope(self):
         return self.__scope
     def getRule(self):
