@@ -2,7 +2,7 @@ import ez_setup
 ez_setup.use_setuptools()
 from setuptools import setup, find_packages
 setup(name='pyConText',
-      version='0.2.7',
+      version='0.2.8',
       description='Python ConText',
       author='Brian Chapman',
       author_email='brchapman@ucsd.edu',
