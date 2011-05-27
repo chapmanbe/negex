@@ -65,7 +65,7 @@ def getParser():
     parser = OptionParser()
     parser.add_option("-d","--db",dest='dbname',
                       help='name of db containing reports to parse')
-    parser.add_option("-t","--test",dest='test',action='store_true',default=False, help='run on testing set')
+    parser.add_option("-r","--runmode",dest='runmode',default='test', help='run on full, training, or test set')
     parser.add_option("-u","--user",dest='user',default="negex1b",
                       help='name of user for parser')
     parser.add_option("-c","--comment",dest="comment",default="",help="description of this algorithm")
@@ -81,7 +81,7 @@ class PEContext(object):
     The constructor takes as an argument the name fo an SQLite database containing
     the relevant information.
     """
-    def __init__(self, dbname, test = True):
+    def __init__(self, dbname, runMode = 'all' ):
         """create an instance of a PEContext object associated with the SQLite
         database.
         dbname: name of SQLite database
@@ -106,10 +106,14 @@ class PEContext(object):
         # get the training set reports. The first 20 reports were used to train
         # Aaron and Hyun and so can be skipped
         reports = self.cursor.fetchall()
-        if( not test ):
-            self.reports = (reports[20:])[:250]
-        else:
+        if( runMode == 'full' ):
+            self.reports = reports[:]
+        elif( 'test' ):
             self.reports = reports[270:]
+        else:
+            self.reports = (reports[20:])[:250]
+        
+            
         print "number of reports to process",len(self.reports)
         raw_input('continue')
         t = time.localtime()
@@ -129,17 +133,15 @@ class PEContext(object):
                         "quality2":pycontext.pycontext()}
 
         # Create files for storing problem cases
-        if( not test ):
-            suffix = "problems3"
-        else:
-            suffix = "testProblems"
+       
+        suffix = runMode
         self.f1 = open(dbname+".ds%s.txt"%suffix,'w')
         self.f2 = open(dbname+".qs%s.txt"%suffix,'w')
         self.f3 = open(dbname+".us%s.txt"%suffix,'w')
         self.f4 = open(dbname+".all%s.txt"%suffix,"w")
         self.f5 = open(dbname+".hs%s.txt"%suffix,"w")
         self.f6 = open(dbname+".disagreements%s.pckle"%suffix,"wb")
-        rsltsDB = dbname+"Results.db"
+        rsltsDB = dbname+".OriginalResults.db"
         if( os.path.exists(rsltsDB) ):
             os.remove(rsltsDB)
         
@@ -244,7 +246,8 @@ class PEContext(object):
             count = 0
             for s in sentences:
                 context.setTxt(s) 
-                context.markModifiers(modifiers)
+                if( modifiers ):
+                    context.markModifiers(modifiers)
                 context.markTargets(terms)
                 fo.write("Original markup\n%s\n"%context.__str__())
                 context.pruneMarks()
@@ -458,7 +461,7 @@ def main():
     parser = getParser()
     (options, args) = parser.parse_args()
         
-    pec = PEContext(options.dbname, options.test)
+    pec = PEContext(options.dbname, runMode=options.runmode)
     pec.processReports()
     pec.getResults()
     pec.saveDisagreements()

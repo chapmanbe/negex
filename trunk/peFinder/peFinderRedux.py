@@ -32,20 +32,41 @@ import pyConText.pycontextNX as pnx
 from pyConText.itemData import *
 from peItemData import *
 import cPickle
-"""helper functions to compute final classification accuracies by comparison
-to human annotations"""
 
+"""helper functions to compute final classification"""
+def qualityState(value):
+    if(value):
+        return "Not Diagnostic"
+    else:
+        return "Diagnostic"
+def diseaseState(value):
+    if( value ):
+        return "Pos"
+    else:
+        return "Neg"
+def uncertaintyState(value):
+    if( value ):
+        return "Yes"
+    else:
+        return "No"
+def notModifiedByOR(terms,modifier):
+    for term in terms:
+        if(not term.isModifiedBy(modifier)):
+            return True
+    return False
+def historicalState(value):
+    if( value ):
+        return "Old"
+    else:
+        return "New"
 def getParser():
     """Generates command line parser for specifying database and other parameters"""
 
     parser = OptionParser()
     parser.add_option("-d","--db",dest='dbname',
                       help='name of db containing reports to parse')
-    parser.add_option("-t","--test",dest='test',action='store_true',default=False, help='run on testing set')
-    parser.add_option("-u","--user",dest='user',default="negex1b",
-                      help='name of user for parser')
-    parser.add_option("-c","--comment",dest="comment",default="",help="description of this algorithm")
-   
+    parser.add_option("-o","--odb",dest='odbname',
+                      help='name of db containing results')
     return parser
 
 
@@ -57,7 +78,7 @@ class PEContext(object):
     The constructor takes as an argument the name fo an SQLite database containing
     the relevant information.
     """
-    def __init__(self, dbname):
+    def __init__(self, dbname, outfile):
         """create an instance of a PEContext object associated with the SQLite
         database.
         dbname: name of SQLite database
@@ -66,27 +87,29 @@ class PEContext(object):
         # Define queries to select data from the SQLite database
         # this gets the reports we will process
         self.query1 = '''SELECT id,impression FROM pesubject''' 
-        # get the consensus labels for the disease and quality states
-        self.query2 = '''SELECT diseaseState,qualityState,CDS,diseaseUncertainty,CQS FROM consensus_states WHERE psid==?'''
-        # get the userannotations from the three raters we are using for this
-        # study
-        self.query3 = """SELECT usrname,diseaseState,qualityState,qualitylimit,usrname FROM userannotations where psid_id == ? AND (usrname=='aaron' OR usrname=='hyun' OR usrname=='sean')"""
-        # create query to get temporal annotations
-        self.query4 = """SELECT usrname FROM AND (usrname == 'jd' OR usrname =='sean' OR usrname=='peter')"""
+
 
 
         self.conn = sqlite.connect(dbname)
         self.cursor = self.conn.cursor()
         self.cursor.execute(self.query1)
-        # get the training set reports. The first 20 reports were used to train
-        # Aaron and Hyun and so can be skipped
-        reports = self.cursor.fetchall()
-        if( not test ):
-            self.reports = (reports[20:])[:250]
-        else:
-            self.reports = reports[270:]
+        self.reports = self.cursor.fetchall()
+
+        #conn = sqlite.connect("nx_o_context_differences.db")
+        #curs = conn.cursor()
+        #curs.execute("""select id from disease_diff""")
+        #es = curs.fetchall()
+        #errors = [e[0] for e in es]
+        #
+        #tmp = []
+        #for r in self.reports:
+        #    if r[0] in errors:
+        #        print "removed"
+        #        tmp.append(r)
+        #self.reports = tmp
+        
+        
         print "number of reports to process",len(self.reports)
-        raw_input('continue')
         t = time.localtime()
         d = datetime.datetime(t[0],t[1],t[2])
         
@@ -96,7 +119,7 @@ class PEContext(object):
                         "quality2":pycontext.pycontext()}
 
 
-        rsltsDB = dbname+"Results.db"
+        rsltsDB = outfile
         if( os.path.exists(rsltsDB) ):
             os.remove(rsltsDB)
         
@@ -147,15 +170,7 @@ class PEContext(object):
         self.temporalCount = 0
         self.models = {}
 
-    def splitTypos(self):
-        pass
-    def setOutput(self, mode = "disease"):
-        if( self.dbName != None ):
-            self.dbn = mode+self.dbName                        
-            if( os.path.exists(self.dbn)):
-                os.remove(self.dbn)
-        else:
-            self.dbn = None
+
 
     def analyzePEReport(self, report, mode, modFilters = None ):
         """given an individual radiology report, creates a pyConTextSql
@@ -164,47 +179,33 @@ class PEContext(object):
         report: a text string containing the radiology reports
         mode: ???
         modFilters: """
-        try:
-            fo = open("pedoc%d_%s.txt"%(self.currentCase, mode),"w")
-            context = self.context.get(mode)
-            targets = self.targets.get(mode)
-            modifiers = self.modifiers.get(mode)
-            if modFilters == None :
-                modFilters = ['indication','pseudoneg','probable_negated_existence',
-                              'definite_negated_existence', 'probable_existence',
-                              'definite_existence', 'historical']
-            context.reset()
-            terms = itemData.itemData(targets)
-            sentences = helpers.sentenceSplitter(report)
-            count = 0
-            for s in sentences:
-                context.setTxt(s) 
+        context = self.context.get(mode)
+        targets = self.targets.get(mode)
+        modifiers = self.modifiers.get(mode)
+        if modFilters == None :
+            modFilters = ['indication','pseudoneg','probable_negated_existence',
+                          'definite_negated_existence', 'probable_existence',
+                          'definite_existence', 'historical']
+        context.reset()
+        terms = itemData.itemData(targets)
+        sentences = helpers.sentenceSplitter(report)
+        count = 0
+        for s in sentences:
+            context.setTxt(s) 
+            if( modifiers ):
                 context.markModifiers(modifiers)
-                context.markTargets(terms)
-                fo.write("Original markup\n%s\n"%context.__str__())
-                context.pruneMarks()
-                fo.write("Pruned markup\n%s\n"%context.__str__())
-                context.dropMarks('Exclusion')
-                fo.write("Post Exclusion\n%s\n"%context.__str__())
-                context.applyModifiers()
-                fo.write("Post modifiers\n%s\n"%context.__str__())
-                fo.write("*"*42+"\n")
-                pnxobj = pnx.pyConTextGraph(context)
-                pnxobj.drawGraph("pedoc%d_%s_%s"%\
-                                 (self.currentCase,
-                                  context.getCurrentSentenceNumber(),
-                                  mode), format="png")
-                #print context
-                context.commit()
-                count += 1
-            model = pycontextSql(db=self.dbn)
-            model.populate(context,modFilters)
-            fo.close()
-            return model
-        except Exception, error:
-            print "failed in analyzePEReport", error
-    def createModel(self, sentence, mode, filters  ):
-        self.setOutput(mode)
+            context.markTargets(terms)
+            context.pruneMarks()
+            context.dropMarks('Exclusion')
+            context.applyModifiers()
+            context.commit()
+            count += 1
+        model = pycontextSql()
+        model.populate(context,modFilters)
+        return model
+
+    def createModel(self, sentence, mode, filters = None  ):
+
         self.models[mode] = self.analyzePEReport( sentence, mode,
                                 modFilters=filters)
     def determineDiseaseState(self):
@@ -220,11 +221,7 @@ class PEContext(object):
             "where historical == 'YES' and probable_negated_existence == 'NO' and definite_negated_existence == 'NO'"
         ) ))
         
-        if( ds != self.b[2] ):
-            self.disagreements["ds"].append(self.currentCase)
-            self.f1.write("%d\nusers(%s):algorithm(%s)\ndisease model\n%s\n%s\n"%\
-                     (self.currentCase, self.b[2], ds, self.models["disease"],"*"*42))
-        self.dsMatrix[(self.b[2],ds)] += 1
+
         self.disease_state = ds
     def determineQualityState(self):
         # now determine quality
@@ -237,11 +234,6 @@ class PEContext(object):
             self.models["quality"].query("where quality_feature == 'YES'") or
             self.models["quality2"].query("where unmodified == 'YES'") ) 
         qs = qualityState(quality)
-        if( qs != self.b[4] ):
-            self.disagreements["qs"].append(self.currentCase)
-            self.f2.write("%d\nusers(%s):algorithm(%s)\n\n%s\n%s\n%s\n"%\
-                     (self.currentCase,self.b[4],qs,self.models["quality"],self.models["quality2"],"*"*42))
-        self.qsMatrix[(self.b[4],qs)] += 1
         self.quality_state = qs
         
     def determineUncertaintyState(self):
@@ -262,8 +254,10 @@ class PEContext(object):
         
         self.uncertainty_state = us
     def determineHistoricalState(self):
-        self.historical_state = "NULL"
-        hs = historicalState(bool(self.models["disease"].query("where historical =='YES'")))
+        if( self.disease_state == 'Neg'):
+            self.historical_state = "NA"
+        else:
+            self.historical_state = historicalState(bool(self.models["disease"].query("where historical =='YES'")))
         
     def printContext(self):
         print "%6d\t%s\t%s\t%s"%(
@@ -279,14 +273,7 @@ class PEContext(object):
         count = 0
         for r in self.reports:
             self.currentCase = r[0]
-            self.currentText = r[1].lower()
-            self.setReportDB(self.currentCase, mode = True )
-            
-            
-            if( self.currentCase in self.breakCases ):
-                pass #raw_input('continue')
-            self.getReaderStates(self.currentCase)
-            self.setReportDB(self.currentCase)
+            self.currentText = r[1].lower()            
 
             print self.currentCase
             # change program to only return one object
@@ -296,18 +283,13 @@ class PEContext(object):
             self.createModel(self.currentText, "disease", ['indication','probable_existence','definite_existence',
                                        'historical','pseudoneg','definite_negated_existence','probable_negated_existence'])
             self.createModel(self.currentText, "quality",['quality_feature'])
-            self.createModel(self.currentText, "quality2", [])
-            try:
-                if( 'NULL' not in self.b ):
-                    self.determineDiseaseState()
-                    self.determineQualityState()
-                    self.determineUncertaintyState()
-                    self.determineHistoricalState()
-                    count += 1
-            except Exception, error:
-                print "failed to process report",error
-                self.problemCases.append(self.currentCase)
-                raw_input('continue')
+            self.createModel(self.currentText, "quality2")
+            self.determineDiseaseState()
+            self.determineQualityState()
+            self.determineUncertaintyState()
+            self.determineHistoricalState()
+            count += 1
+
             self.recordResults()  
         print "processed %d cases"%count
     
@@ -317,33 +299,19 @@ class PEContext(object):
         
         
     def cleanUp(self):     
-        self.f1.close()
-        self.f2.close()
-        self.f3.close()
         self.conn.close()
         self.resultsConn.commit()
 
         
-def getStats(m,pos='Pos',neg='Neg',label=''):
-    ppv = m[(pos,pos)]/float(m[(pos,pos)]+m[(neg,pos)])
-    sens = m[(pos,pos)]/float(m[(pos,pos)]+m[(pos,neg)])
-    spec = m[(neg,neg)]/float(m[(neg,neg)]+m[(neg,pos)])
-    acc = float(m[(pos,pos)]+m[(neg,neg)])/(m[(pos,pos)]+m[(neg,neg)]+m[(pos,neg)]+m[(neg,pos)])
-    print label
-    print "PPV=",ppv, m[(pos,pos)],m[(pos,pos)]+m[(neg,pos)]
-    print "Sens=",sens, m[(pos,pos)], m[(pos,pos)]+m[(pos,neg)]
-    print "Spec=",spec, m[(neg,neg)], m[(neg,neg)]+m[(neg,pos)]
-    print "Accuracy=",acc, m[(pos,pos)]+m[(neg,neg)], m[(pos,pos)]+m[(neg,neg)]+m[(pos,neg)]+m[(neg,pos)]
-            
 
 def main():
     parser = getParser()
     (options, args) = parser.parse_args()
+    if( options.dbname == options.odbname ):
+        raise ValueError("output database must be distinct from input database")
         
-    pec = PEContext(options.dbname, options.test)
+    pec = PEContext(options.dbname, options.odbname)
     pec.processReports()
-    pec.getResults()
-    pec.saveDisagreements()
     pec.cleanUp()
     
     
