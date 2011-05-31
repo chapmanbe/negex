@@ -92,7 +92,9 @@ class tagObject(object):
     def getConTextCategory(self):
         return self.__ConTextCategory
     def getBriefDescription(self):
-        return """%s (%s) <<%s>>"""%(self.getLiteral(),self.getPhrase(),self.getCategory())
+        return """(%d,%d): %s (%s) <<%s>>"""%(self.getSpan()[0],self.getSpan()[1],
+                                              self.getLiteral(),self.getPhrase(),
+                                              self.getCategory())
     def getLiteral(self):
         """returns the term defining this object"""
         return self.__item.getLiteral()
@@ -400,7 +402,7 @@ class pyConText(object):
         for key in self.__archive.keys():
             g = self.__archive[key]["graph"]
             self.__documentGraph = nx.union(g,self.__documentGraph)
-            # this should work but doesn't preseve tthe node data attributes
+            # this should work but doesn't preseve the node data attributes
             #nds = g.nodes(data=True) # for python < 2.6 need to use code below
             #for n in nds:
             #    self.__documentGraph.add_node(n[0],category=n[1]['category'])
