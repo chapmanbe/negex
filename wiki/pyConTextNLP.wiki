@@ -17,6 +17,8 @@ pyConTextNLP can be downloaded from the Downloads page here on the negex Google 
 
   sudo easy_install pyConTextNLP
 
+The only listed dependency is NetworkX and easy_install should also install this for you, if it is not already installed. However, there is optional functionality that is dependent on pygraphviz. I do not yet have this worked into the setuptools script.
+
 = Code Structure =
 The original code used in the JBI is in the top level pyConTextNLP package. A simplification of this original algorithm that uses [http://networkx.lanl.gov/ NetworkX] is in the subpackage pyConTextNLP.pyConTextGraph. pyConTextGraph is what is currently being developed by us and is what is described here.
 
@@ -26,3 +28,12 @@ The package has three files
   * *pyConTextSql.py*. 
 
 = How to Use =
+I am working on improving the documentation and (hopefully) adding some testing to the code. epydoc generated documentation for the current release (0.3.0) is available [http://quiil.ucsd.edu/pyConTextNLP/0.3.0/ here] and the epydoc generated documentation for the latest version in the subversion repository will be available [http://quiil.ucsd.edu/pyConTextNLP/current here].
+
+Some preliminary comments:
+
+ * pyConTextNLP works marks up text on a sentence by sentence level. 
+ * pyConTextNLP facilitates reasoning from multi-sentence documents, but the markup (e.g. negation is all limited within the scope of a sentence.
+ * pyConTextNLP assumes the sentence is a string not a list of words
+
+== The Skeleton of an Example ==
