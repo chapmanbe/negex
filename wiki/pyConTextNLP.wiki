@@ -13,10 +13,16 @@ Other publications/presentations based on pyConText include:
 Note: we changed the package name from pyConText to pyConTextNLP because of a name conflict on pypi.
 
 = Installation  =
-pyConTextNLP can be downloaded from the Downloads page here on the negex Google Code project. Alternatively, it can be downloaded from the pypi repository http://pypi.python.org/pypi/pyConTextNLP.
+pyConTextNLP can be downloaded from the Downloads page here on the negex Google Code project. Alternatively, it can be downloaded from the pypi repository http://pypi.python.org/pypi/pyConTextNLP. Since pyConTextNLP is registered with pypi, it can be installed with easy_install:
 
+  sudo easy_install pyConTextNLP
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+= Code Structure =
+The original code used in the JBI is in the top level pyConTextNLP package. A simplification of this original algorithm that uses [http://networkx.lanl.gov/ NetworkX] is in the subpackage pyConTextNLP.pyConTextGraph. pyConTextGraph is what is currently being developed by us and is what is described here.
+
+The package has three files
+  * *itemData.py*. This is where the essential domain knowledge is stored in 4-tuples as described in the paper. For a new application, this is where the user will encapsulate the domain knowledge for their application.
+  * *pyConTextGraph.py*. This module defines the algorithm
+  * *pyConTextSql.py*. 
+
+= How to Use =
