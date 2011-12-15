@@ -1,4 +1,4 @@
-Wiki documentation for pyConTextNLP, a partial implementation in Python of the ConText algorithm.
+#Wiki documentation for pyConTextNLP, a partial implementation in Python of the ConText algorithm.
 
 = Introduction =
 
