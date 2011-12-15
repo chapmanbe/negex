@@ -1,3 +1,4 @@
+#labels NLP,Python
 #Wiki documentation for pyConTextNLP, a partial implementation in Python of the ConText algorithm.
 
 = Introduction =
