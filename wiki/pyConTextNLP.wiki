@@ -118,3 +118,30 @@ Assuming we have read in our documents to process and that the basic document un
 
         return context
 }}}
+
+The markup is stored as a directed graph, so determining whether a target is, for example, negated, you simply check to see if an immediate predecessor of the target node is a negation. This is all done with NetworkX commands. 
+
+To access the underlying graph from the context object evoke the getCurrentGraph() method
+
+{{{
+g = context.getCurrentGraph()
+}}}
+
+Here is some code to get a list of all the target nodes in the markup:
+{{{
+targets = [n[0] for n in g.nodes(data = True) if n[1].get("category","") == 'target']
+}}}
+
+{{{
+
+def modifies(g,n,modifiers):
+    """g: directed graph representing the ConText markup
+        n: a node in g
+        modifiers: a list of categories e.g. ["definite_negated_existence","probable_existence"]
+        modifies() tests whether n is modified by an objects with category in categories
+    pred = g.predecessors(n)
+    if( not pred ):
+        return False
+    pcats = [n.getCategory().lower() for n in pred]
+    return bool(set(pcats).intersection([m.lower() for m in modifiers]))
+}}}
