@@ -167,11 +167,17 @@ class pyConText(object):
         self.__scope = None
         self.__SCOPEUPDATED = False
         self.__documentGraph = nx.DiGraph()
+	self.__VERBOSE = False
 
         # regular expressions for finding text
         self.res = {}
 
 
+    def toggleVerbose(self):
+        """toggles the boolean value for verbose mode"""
+	self.__VERBOSE = not self.__VERBOSE
+    def getVerbose(self):
+        return self.__VERBOSE
     def reset(self):
         """deletes all archived values and sets all class attributes to empty or
         zero values
@@ -211,6 +217,8 @@ class pyConText(object):
         sets the current txt to txt and resets the current attributes to empty
         values, but does not modify the object archive
         """
+	if( self.getVerbose() ):
+	    print "Setting text to",txt
         self.__rawTxt = txt
         self.__txt = None
         self.__graph = nx.DiGraph(sentence=txt)
@@ -234,15 +242,24 @@ class pyConText(object):
         self.__txt = self.r2.sub(" ",self.__txt)
         if( stripNumbers ):
             self.__txt = self.r3.sub("",self.__txt)
-            
+           
         self.__scope= (0,len(self.__txt))
-    #def __str__(self):
-    #    txt = ''
-    #    txt += self.renderMarkedTargets()
-    #    for term in self.__markedModifiers:
-    #        txt += term.__str__()+"\n"
-    #    txt += "-"*60
-    #    return txt
+	if( self.getVerbose() ):
+	    print "cleaned text is now",self.__txt
+    def __str__(self):
+        txt = ''
+	txt += 'rawTxt: %s\n'%self.__rawTxt
+	txt += 'txt: %s\n'%self.__txt
+	nodes = [n for n in self.__graph.nodes(data=True) if n[1].get('category','') == 'target']
+	for n in nodes:
+	    txt += "*"*32+"\n"
+	    txt += "TARGET: %s\n"%n[0].__str__()
+	    modifiers = self.__graph.predecessors(n[0])
+	    for m in modifiers:
+	        txt += "->"*5+"MODIFIED BY: %s\n"%m.__str__()
+	    
+        txt += "\n\n\n"
+        return txt
     def getConTextModeNodes(self,mode, currentGraph = True ):
         if( currentGraph ):
             nodes = [n[0] for n in self.__graph.nodes(data=True) if n[1]['category'] == mode]
@@ -255,11 +272,18 @@ class pyConText(object):
         of a modifier is limited by its own span and the and the span of
         modifiers in the same category marked in the text.
         """
+	if( self.getVerbose() ):
+	    print "updating scopes"
         self.__SCOPEUPDATED = True
         # make sure each tag has its own self-limited scope
         modifiers = self.getConTextModeNodes("modifier")
         for modifier in modifiers:
+	    if(self.getVerbose()):
+	        print "old scope for %s is %s"%(modifier.__str__(),modifier.getScope())
             modifier.setScope()
+	    if(self.getVerbose()):
+	        print "new scope for %s is %s"%(modifier.__str__(),modifier.getScope())
+
 
         # Now limit scope based on the domains of the spans of the other
         # modifier
@@ -309,6 +333,8 @@ class pyConText(object):
     
             tO.setSpan(i.span())
             tO.setPhrase(i.group())
+            if( self.getVerbose() ):
+                print "marked item",tO
             terms.append(tO)
         return terms
 
@@ -320,6 +346,11 @@ class pyConText(object):
         self.__prune_marks(self.__graph.nodes())
     def dropInactiveModifiers(self):
         mnodes = [ n for n in self.getConTextModeNodes("modifier") if self.__graph.degree(n) == 0]
+        if( self.getVerbose() and mnodes ):
+            print "dropping the following inactive modifiers"
+            for mn in mnodes:
+                print mn
+
         self.__graph.remove_nodes_from(mnodes)
     def pruneModifierRelationships(self):
         """Initially modifiers may be applied to multiple targets. This function
@@ -331,6 +362,8 @@ class pyConText(object):
             if( modifiedBy and len(modifiedBy) > 1 ):
                 minm = min([ (m.dist(mb),mb) for mb in modifiedBy ])
                 edgs = self.__graph.edges(m)
+                if( self.getVerbose() ):
+                    print "deleting relationship",m,minm[1]
                 edgs.remove((m,minm[1]))
                 self.__graph.remove_edges_from(edgs)
         
@@ -350,11 +383,19 @@ class pyConText(object):
                     elif( t2.encompasses(t1) ):
                         nodesToRemove.append(t1)
                         break
+        if( self.getVerbose() ):
+            print "pruning the following nodes"
+            for n in nodesToRemove:
+                print n
         self.__graph.remove_nodes_from(nodesToRemove)
         
     def dropMarks(self,category="exclusion"):
         """Drop any targets that have the category equal to category"""
         dnodes = [n for n in self.__graph.nodes() if n.getCategory().lower() == category.lower()]
+        if( self.getVerbose() and dnodes ):
+            print "droping the following markedItems"
+            for n in dnodes:
+                print n
         self.__graph.remove_nodes_from(dnodes)           
 
     def applyModifiers(self):
@@ -370,6 +411,9 @@ class pyConText(object):
         for target in targets:
             for modifier in modifiers:
                 if( modifier.applyRule(target) ):
+                    if( self.getVerbose() ):
+                        print "applying relationship between",modifier,target
+
                     self.__graph.add_edge(modifier, target)
     def getMarkedTargets(self):
         """
