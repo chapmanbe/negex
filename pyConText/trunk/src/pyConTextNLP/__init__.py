@@ -11,4 +11,13 @@
 #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #See the License for the specific language governing permissions and
 #limitations under the License.
-__version__='0.2.6'
+"""This is an alternative implementation of the pyConText package where I make
+use of graphs to indicate relationships between targets and modifiers. Nodes of
+thegraphs are the targets and modifiers identified in the text; edges of the
+graphs are relationships between the targets. This provides for much simpler
+code than what exists in the other version of pyConText where each object has a
+dictionary of __modifies and __modifiedby that must be kept in sync with each
+other.
+
+Also it is hoped that the use of a directional graph could ultimately simplify
+our itemData structures as we could chain together items"""

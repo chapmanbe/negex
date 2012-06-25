@@ -25,47 +25,90 @@ The module instantiates several instances of this object:
     7) probables
     8) definites
 """
+class contextItem(object):
+    __numEnteries = 4
+    def __init__(self,args):
+        self.__literal = args[0]
+        self.__category = args[1]
+        self.__re = args[2]
+        self.__rule = args[3]
+    def getLiteral(self):
+        return self.__literal
+    def getCategory(self):
+        return self.__category
+    def getRE(self):
+        return self.__re
+    def getRule(self):
+        return self.__rule
+    def __str__(self):
+        txt = """literal<<%s>>; category<<%s>>; re<<%s>>; rule<<%s>>"""%(
+            self.__literal,self.__category,self.__re, self.__rule)
+        return txt
+    
 class itemData(list):
-	def __init__(self,*args):
-		super(itemData,self).__init__(*args)
-		self.__numEnteries = 4
-		
-	def __validate(self,data):
-		"""validate that data consists of the correct number of string arguments"""
-		try:
-			td = type(data)
-			if( td != type([]) and td != type(()) and td != type(set([])) ):
-				print "data not a valid container type",td
-				return False
-			if( len(data ) != self.__numEnteries ):
-				print "data must have %d elements."%self.__numEnteries
-				return False
-			for d in data:
-				if( type(d) != type('') ):
-					print "all data elements must be strings"
-					return False
-					
-			return True
-		except Exception, error:
-			print "failed in itemData.validate", error
-			return False
-			
-	def append(self,data):
-		if(self.__validate(data)):
-			super(itemData,self).append(data)
-			
-	def insert(self,index,data):
-		if(self.__validate(data)):
-			super(itemData,self).insert(index,data)
-	def extend(self,iterable):
-		for i in iterable:
-			if( not self.__validate(i) ):
-				return
-		super(itemData,self).extend(iterable)
+    def __init__(self,*args):
+        if( args ):
+            for a in args:
+                if( self.__validate(a) ):
+                    itm = a
+                else:
+                    try:
+                        itm = contextItem(a)
+                    except:
+                        itm = None
+                if( itm ):
+                    super(itemData,self).append(itm)
+            
+    def __validate(self,data):
+        return isinstance(data,contextItem)
+     
+    def dropByLiteral(self,value):
+        """drop any contextItems with literal matching value
+        """
+        # must be a more functional way to write this
+        j = 0
+        while( True ):
+            try:
+                itm = self.__getitem__(j)
+                if( itm.getLiteral() == value ):
+                    self.__delitem__(j)
+                else:
+                    j += 1
+            except:
+                break
+            
+    def append(self,data):
+        if(self.__validate(data)):
+            itm = dta
+        else:
+            itm = contextItem(data)
+        super(itemData,self).append(itm)
+    def insert(self,index,data):
+        if(self.__validate(data)):
+            itm = data
+        else:
+            itm = contextItem(data)
+        super(itemData,self).insert(index,itm)
+    def prepend(self,iterable):
+        for i in iterable:
+            if( self.__validate(i) ):
+                itm = i
+            else:
+                itm = contextItem(i)
+            super(itemData,self).insert(0,itm)
+    def extend(self,iterable):
+        for i in iterable:
+            if( self.__validate(i) ):
+                itm = i
+            else:
+                itm = contextItem(i)
+            super(itemData,self).append(itm)
+        
 
-probableNegations = itemData([
+
+probableNegations = itemData(
 ["can rule out","PROBABLE_NEGATED_EXISTENCE","","forward"],
-["cannot be excluded","PROBABLE_NEGATED_EXISTENCE",r"""(cannot|can\snot)\sbe\sexcluded""","backward"],
+["cannot be excluded","PROBABLE_NEGATED_EXISTENCE",r"""cannot\sbe\s((entirely|completely)\s)?(excluded|ruled out)""","backward"],
 ["is not excluded","PROBABLE_NEGATED_EXISTENCE",r"""(is|was|are|were)\snot\sexcluded""",'backward'],
 ["adequate to rule the patient out against","PROBABLE_NEGATED_EXISTENCE","","forward"],
 ["can rule him out","PROBABLE_NEGATED_EXISTENCE","","forward"],
@@ -138,9 +181,9 @@ probableNegations = itemData([
 ["sufficient to rule out against","PROBABLE_NEGATED_EXISTENCE","","forward"],
 ["sufficient to rule out for","PROBABLE_NEGATED_EXISTENCE","","forward"],
 ["test for","PROBABLE_NEGATED_EXISTENCE","","forward"],
-])
+)
 
-definiteNegations = itemData([
+definiteNegations = itemData(
 ["deny","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["denied","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["denies","DEFINITE_NEGATED_EXISTENCE","","forward"],
@@ -171,8 +214,7 @@ definiteNegations = itemData([
 ["rules her out for","DEFINITE_NEGATED_EXISTENCE",r"""rules\s(him|her)\sout\sfor""","forward"],
 ["with no","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["not had","DEFINITE_NEGATED_EXISTENCE","","forward"],
-["rules him out","DEFINITE_NEGATED_EXISTENCE",r"""rules\s(him|her)\sout""","forward"],
-["rules the patient out","DEFINITE_NEGATED_EXISTENCE","","forward"],
+["rules him out","DEFINITE_NEGATED_EXISTENCE",r"""rules\s(him|her|the\spatient)\sout""","forward"],
 ["did rule the patient out for","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["did rule out for","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["did rule him out against","DEFINITE_NEGATED_EXISTENCE","","forward"],
@@ -203,9 +245,9 @@ definiteNegations = itemData([
 ["did rule her out","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["without","DEFINITE_NEGATED_EXISTENCE","","forward"],
 ["have been ruled out","DEFINITE_NEGATED_EXISTENCE","","backward"],
-])
+)
 
-pseudoNegations = itemData([
+pseudoNegations = itemData(
 ["not only","PSEUDONEG","",""],
 ["no definite change","PSEUDONEG","","forward"],
 ["not cause","PSEUDONEG","","forward"], #should have a re for "not (the) cause"
@@ -220,11 +262,12 @@ pseudoNegations = itemData([
 ["not drain","PSEUDONEG","","forward"],
 ["gram negative","PSEUDONEG","","forward"],
 ["no change","PSEUDONEG","","forward"],
+["risk factors for","PSEUDONEG","","forward"],
 #["the examination","PSEUDONEG","","backward"],
 #["positive study for","PSEDUONEG",r"positive (study|exam|examination)( for)","forward"],
-])
+)
 
-indications = itemData([
+indications = itemData(
 ["will be ruled out","INDICATION","","backward"],
 ["can be ruled out","INDICATION","","backward"],
 ["will be ruled out for","INDICATION","","forward"],
@@ -263,22 +306,9 @@ indications = itemData([
 ["rule the patient out","INDICATION","","forward"],
 ["rule out for","INDICATION","","forward"],
 ["be ruled out for","INDICATION","","forward"],
-["rule the patient out for","INDICATION","","forward"]])
-"""THIS IS AGE INDETERMINATE
-SUBACUTE
-RESIDUAL
-RESOLUTION OF PRIOR
-RESOLUTION OF
-resolving
-no change in
-chaninging
-PREVIOUSLY NOTED
-UNCHANGED
-HAS DIMINISHED
-INTERVAL CHANGE IN
+["rule the patient out for","INDICATION","","forward"])
 
-"""
-historicals = itemData([
+historicals = itemData(
 ["documented","HISTORICAL","","forward"],
 ["subacute","HISTORICAL","","forward"],
 ["chronic","HISTORICAL","","forward"],
@@ -294,11 +324,12 @@ historicals = itemData([
 ["change in","HISTORICAL","","forward"],
 ["prior","HISTORICAL","","bidirectional"],
 ["diminished","HISTORICAL","","bidirectional"],
+["again noted","HISTORICAL","","bidirectional"],
 ["sequelae of","HISTORICAL","","forward"],
 ["prior study", "HISTORICAL","","bidirectional"],
-])
+)
 
-conjugates = itemData([
+conjugates = itemData(
 #["with","CONJ","","terminate"], # fixes pedoc 131 scope
 ["involving","CONJ","","terminate"], # proposed fix for pedoc #153
 ["as a secondary cause for","CONJ","","terminate"],
@@ -390,37 +421,34 @@ conjugates = itemData([
 ["as an secondary etiology for","CONJ","","terminate"],
 ["as the cause of","CONJ","","terminate"],
 ["as a secondary etiology of","CONJ","","terminate"],
-["as an secondary origin of","CONJ","","terminate"]])
+["as an secondary origin of","CONJ","","terminate"])
 
-probables = itemData([
-["seen best","PROBABLE_EXISTENCE","",""], # fixes pedoc #126 uncertainty
+probables = itemData(
+["seen best","PROBABLE_EXISTENCE","",""], 
 ["consistent with","PROBABLE_EXISTENCE","","forward"],
 ["evidence","PROBABLE_EXISTENCE","","forward"],
-["suggestive","PROBABLE_EXISTENCE","","forward"],
-#["not excluded", "POST-UNCERTAINTY",r"""not\sexcluded""","backward"], #fixes pedoc #139
-["appear","PROBABLE_EXISTENCE","\bappear\b","bidirectional"], # fixes pedoc #270 uncertainty
-#["definite","DEFINITE EXISTENCE","","forward"],
+["suggestive","PROBABLE_EXISTENCE","suggest|suggestive|suggests","forward"],
+["appear","PROBABLE_EXISTENCE","\bappear\b","bidirectional"],
 ["may represent","PROBABLE_EXISTENCE",r"""(may|might)\srepresent""","forward"],
 ["appears to be","PROBABLE_EXISTENCE","","forward"],
 ["compatible with","PROBABLE_EXISTENCE","","forward"],
 ["convincing","PROBABLE_EXISTENCE","","forward"],
-["suggest","PROBABLE_EXISTENCE",r"\bsuggest\b","forward"],
 ["represents","PROBABLE_EXISTENCE","","forward"],
 ["certain if","UNCERTAINTY","","forward"],
 ["suspicious","PROBABLE_EXISTENCE","","forward"],
-["seen","PROBABLE_EXISTENCE",r"(seen|visualized|observed)","backward"],
-["noted","PROBABLE_EXISTENCE","","backward"],
+["seen","PROBABLE_EXISTENCE",r"(seen|visualized|observed|noted)","backward"],
 ["worrisome","PROBABLE_EXISTENCE","","forward"],
 ["identified","PROBABLE_EXISTENCE","","backward"],
 ["suspicous","PROBABLE_EXISTENCE","","forward"],
 ["likely","PROBABLE_EXISTENCE","","bidirectional"],
-["versus","PROBABLE_EXISTENCE","","bidirectional"],
+["versus","PROBABLE_EXISTENCE","versus|vs","bidirectional"],
+["possible","PROBABLE_EXISTENCE","possible|possibly","bidirectional"],
 ["equivocal","PROBABLE_EXISTENCE","",'bidirectional']
-])
+)
 
-definites = itemData([
+definites = itemData(
 ["positive examination for","DEFINITE_EXISTENCE","","forward"], # fixes pedoc #126 uncertainty
 ["obvious","DEFINITE_EXISTENCE","","forward"],
 ["definite","DEFINITE_EXISTENCE","","forward"],
 ["positive study for","PSEDUONEG",r"positive (study|exam|examination)( for)","forward"],
-])
+)
