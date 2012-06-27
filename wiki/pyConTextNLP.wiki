@@ -1,6 +1,8 @@
 #labels NLP,Python
 = Introduction =
 
+*See Changes3to4 for a description of changes for version 0.4*
+
 pyConTextNLP is a partial implementation of the ConText algorithm using Python. The original description of  pyConTextNLP was provided in Chapman BE, Lee S, Kang HP, Chapman WW, "Document-level classification of CT pulmonary angiography reports based on an extension of the ConText algorithm." [http://www.sciencedirect.com/science/article/pii/S1532046411000621  J Biomed Inform. 2011 Oct;44(5):728-37].
 
 
