@@ -43,14 +43,7 @@ class criticalFinder(object):
 
         # Define queries to select data from the SQLite database
         # this gets the reports we will process
-        self.query1 = '''SELECT %s,%s FROM %s'''%(options.id,options.report_text,options.table)
         
-        self.conn = sqlite.connect(options.dbname)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute(self.query1)
-        self.reports = self.cursor.fetchall()
-        
-        print "number of reports to process",len(self.reports)
         self.context = pyConText.pyConText()
        
         mods = itemData.instantiateFromCSV(options.lexical_kb)
@@ -94,8 +87,6 @@ def getParser():
     """Generates command line parser for specifying database and other parameters"""
 
     parser = OptionParser()
-    parser.add_option("-b","--db",dest='dbname',
-                      help='name of db containing reports to parse')
     parser.add_option("-l","--lexical_kb",dest='lexical_kb',
                       help='name of csv file containing lexical knowledge', default="lexical_kb.csv")
     parser.add_option("-d","--domain_kb",dest='domain_kb',
