@@ -25,6 +25,7 @@ import sqlite3 as sqlite
 import pyConTextNLP.pyConTextGraph as pyConText
 import pyConTextNLP.itemData as itemData
 import pyConTextNLP.helpers as helpers
+import re
 """helper functions to compute final classification"""
 
 class criticalFinder(object):
@@ -63,65 +64,31 @@ class criticalFinder(object):
         for key in trgs.keys():
             self.targets.prepend(trgs[key])
 
-    def analyzeReport(self, report, modFilters = None ):
-        """given an individual radiology report, creates a pyConTextSql
-        object that contains the context markup
-        report: a text string containing the radiology reports
-        modFilters: """
-        context = self.context
-        targets = self.targets
-        modifiers = self.modifiers
-        if modFilters == None :
-            modFilters = ['indication','pseudoneg','probable_negated_existence',
-                          'definite_negated_existence', 'probable_existence',
-                          'definite_existence', 'historical']
-        context.reset()
-        sentences = helpers.sentenceSplitter(report)
-        count = 0
-        for s in sentences:
-            print s
-            context.setRawText(s) 
-            context.cleanText()
-            context.markItems(modifiers, mode="modifier")
-            context.markItems(targets, mode="target")
-            g= context.getCurrentGraph()
-            ic=0
-            context.pruneMarks()
-            context.dropMarks('Exclusion')
-            context.applyModifiers()
-            #context.pruneModifierRelationships()
-            context.dropInactiveModifiers()
-            print context
-            context.commit()
-            count += 1
-            ('continue')
-        #context.computeDocumentGraph()    
+    def testModifiers(self):
+        for m in self.modifiers:
+            reg = m.getRE()
+            if( reg ):
+                reg = m.getLiteral()
+                r = re.compile(reg,re.IGNORECASE|re.UNICODE); 
+                print "l: %s; r: %s"%(m.getLiteral(),m.getRE())
+                print bool(r.findall(m.getLiteral())),r.findall(m.getLiteral())
+                print "Now clean text"
+                self.context.setRawText(reg)
+                self.context.cleanText()
+                print bool(r.findall(self.context.getText())),r.findall(self.context.getText())
+                print "_"*42
 
-    def processReports(self):
-        """For the selected reports (training or testing) in the database,
-        process each report with peFinder
-        """
-        count = 0
-        for r in self.reports:
-                self.currentCase = r[0]
-                self.currentText = r[1].lower()
-                print "CurrentCase:",self.currentCase
-                self.analyzeReport(self.currentText,
-                                    modFilters=['indication','probable_existence',
-                                                'definite_existence',
-                                                'historical','future','pseudoneg',
-                                                'definite_negated_existence',
-                                                'probable_negated_existence'])
-                raw_input()
-print "_"*48
+    def testTargets(self):
+        for m in self.targets:
+            reg = m.getRE()
+            if( reg ):
+                reg = m.getLiteral()
+                r = re.compile(reg,re.IGNORECASE|re.UNICODE); 
+                print "l: %s; r: %s"%(m.getLiteral(),m.getRE())
+                print bool(r.findall(m.getLiteral())),r.findall(m.getLiteral())
+                print "_"*42
+
         
-        
-def modifies(g,n,modifiers):
-    pred = g.predecessors(n)
-    if( not pred ):
-        return False
-    pcats = [n.getCategory().lower() for n in pred]
-    return bool(set(pcats).intersection([m.lower() for m in modifiers]))
     
 def getParser():
     """Generates command line parser for specifying database and other parameters"""
@@ -146,7 +113,9 @@ def main():
     parser = getParser()
     (options, args) = parser.parse_args()
     pec = criticalFinder(options)
-    pec.processReports()
+    pec.testModifiers()
+    raw_input('continue')
+    pec.testTargets()
     
     
 if __name__=='__main__':
