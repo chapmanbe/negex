@@ -20,14 +20,11 @@ The database should have a table named 'reports' with a field named 'impression'
 although these values can be specified through the command line options."""
 import sys
 
-import os
 from optparse import OptionParser
 import sqlite3 as sqlite
-import networkx as nx
-import time
 import pyConTextNLP.pyConTextGraph as pyConText
+import pyConTextNLP.itemData as itemData
 import pyConTextNLP.helpers as helpers
-from critfindingItemData import *
 """helper functions to compute final classification"""
 
 class criticalFinder(object):
@@ -37,7 +34,7 @@ class criticalFinder(object):
     The constructor takes as an argument the name of an SQLite database containing
     the relevant information.
     """
-    def __init__(self, options):#dbname, outfile, save_dir, table, idcolumn, txtcolumn, doGraphs):
+    def __init__(self, options):
         """create an instance of a criticalFinder object associated with the SQLite
         database.
         dbname: name of SQLite database
@@ -47,12 +44,6 @@ class criticalFinder(object):
         # this gets the reports we will process
         self.query1 = '''SELECT %s,%s FROM %s'''%(options.id,options.report_text,options.table)
         
-        self.save_dir = options.save_dir
-        if( not os.path.exists(self.save_dir) ):
-            os.mkdir(self.save_dir)
-        
-        self.allow_uncertainty = options.allow_uncertainty
-        self.proc_category = options.category
         self.conn = sqlite.connect(options.dbname)
         self.cursor = self.conn.cursor()
         self.cursor.execute(self.query1)
@@ -60,31 +51,21 @@ class criticalFinder(object):
         
         print "number of reports to process",len(self.reports)
         self.context = pyConText.pyConText()
-        
-        self.modifiers = "disease":itemData()
-        self.modifiers.prepend(pseudoNegations)
-        self.modifiers.prepend(definiteNegations)
-        self.modifiers.prepend(probableNegations)
-        self.modifiers.prepend(probables)
-        self.modifiers.prepend(definites)
-        self.modifiers.prepend(indications)
-        
-        self.modifiers.prepend(conjugates)
-        self.modifiers.prepend(future)
-        self.modifiers.prepend(historicals)
+       
+        mods = itemData.instantiateFromCSV(options.lexical_kb)
+        trgs = itemData.instantiateFromCSV(options.domain_kb)
 
-        # Quality targets
-        if( options.category.lower() == 'all'):
-            targetItems = critItems
-        else:
-            targetItems = [i for i in critItems if i.getCategory() == options.category]
-        self.targets = targetItems
-        self.models = {}
+        self.modifiers = itemData.itemData()
+        for key in mods.keys():
+            self.modifiers.prepend(mods[key])
+
+        self.targets = itemData.itemData()
+        for key in trgs.keys():
+            self.targets.prepend(trgs[key])
 
     def analyzeReport(self, report, modFilters = None ):
         """given an individual radiology report, creates a pyConTextSql
         object that contains the context markup
-
         report: a text string containing the radiology reports
         modFilters: """
         context = self.context
@@ -98,9 +79,13 @@ class criticalFinder(object):
         sentences = helpers.sentenceSplitter(report)
         count = 0
         for s in sentences:
+            raw_input( s )
             context.setTxt(s) 
+            context.getCleanTxt()
             context.markItems(modifiers, mode="modifier")
             context.markItems(targets, mode="target")
+            g= context.getCurrentGraph()
+            ic=0
             context.pruneMarks()
             context.dropMarks('Exclusion')
             context.applyModifiers()
@@ -108,67 +93,10 @@ class criticalFinder(object):
             context.dropInactiveModifiers()
             context.commit()
             count += 1
+            print context
+            raw_input('continue')
         #context.computeDocumentGraph()    
 
-    def classifyDocumentTargets(self):
-        cntxt = self.context
-        cntxt.computeDocumentGraph()
-        g = cntxt.getDocumentGraph()
-        targets = [n[0] for n in g.nodes(data = True) if n[1].get("category","") == 'target']
-        
-        if( not targets ):
-            return alerts,rslts
-        if(self.allow_uncertainty):
-            pos_filters = ["definite_existence","probable_existence"]
-        else:
-            pos_filters = ["definite_existence"]
-        for t in targets:
-            mods = g.predecessors(t)
-            rslts[t] = {}
-            if( not mods ): # an unmodified target is disease positive,certain, and acute
-                
-                rslts[t]['disease'] = 'Pos'
-                rslts[t]['uncertainty'] = 'No'
-                rslts[t]['temporality'] = 'New'
-            else:
-                if (modifies(g,t,pos_filters) and
-                    not modifies(g,t,[#"definite_negated_existence",
-                                      #"probable_negated_existence",
-                                      "future","indication","pseudoneg"])):
-                    rslts[t]['disease'] = 'Pos'
-                else:
-                    rslts[t]['disease'] = 'Neg'
-                if( modifies(g,t,["probable_existence",
-                                  "probable_negated_existence"]) ):
-                    rslts[t]['uncertainty'] = 'Yes'
-                else:
-                    rslts[t]['uncertainty'] = 'No'
-                if( modifies(g,t,["historical"]) ):
-                    rslts[t]['temporality'] = 'Old'
-                else:
-                    if( rslts[t]['disease'] == 'Neg'):
-                        rslts[t]['temporality'] = 'NA'
-                    else:
-                        rslts[t]['temporality'] = 'New'
-            rsum = alerts.get(t.getCategory(),0)
-            if( rslts[t]["disease"] == 'Pos' and rslts[t]["temporality"] == 'New'):
-                alert = 1
-            else:
-                alert = 0
-            rsum = max(rsum,alert)
-            alerts[t.getCategory()] = rsum
-
-        return alerts, rslts   
-
-    def plotGraph(self):
-        cntxt = self.context["disease"]
-        g = cntxt.getDocumentGraph()
-        ag = nx.to_pydot(g, strict=True)
-        gfile = os.path.join(self.save_dir,
-                             "report_%s_unc%s_%s_critical.pdf"%(self.proc_category,
-                                                                self.allow_uncertainty,
-                                                          self.currentCase))
-        ag.write(gfile,format="pdf")
     def processReports(self):
         """For the selected reports (training or testing) in the database,
         process each report with peFinder
@@ -177,44 +105,15 @@ class criticalFinder(object):
         for r in self.reports:
                 self.currentCase = r[0]
                 self.currentText = r[1].lower()
+                print "CurrentCase:",self.currentCase
                 self.analyzeReport(self.currentText,
-                                    "disease",
                                     modFilters=['indication','probable_existence',
                                                 'definite_existence',
-                                              'historical','future','pseudoneg',
-                                              'definite_negated_existence',
-                                              'probable_negated_existence'])
-
-                self.recordResults()  
-    
-    def recordResults(self):
-
-        alerts, rslts = self.classifyDocumentTargets()
-        if( self.doGraphs and rslts):
-            self.plotGraph()
-        targets = rslts.keys()
-        if(  targets ):
-            print self.currentCase
-            query = """INSERT INTO results (reportid,category, disease, uncertainty, historical, literal, matchedphrase) VALUES (?,?,?,?,?,?,?)"""
-            for t in targets:
-                self.resultsCursor.execute(query,
-                                           (self.currentCase,
-                                            t.getCategory(),
-                                            rslts[t]["disease"],
-                                            rslts[t]["uncertainty"],
-                                            rslts[t]["temporality"],
-                                            t.getLiteral(),
-                                            t.getPhrase(),))
-        keys = alerts.keys()
-        if( keys ):
-            query = """INSERT INTO alerts (reportid,category, alert, report) VALUES (?,?,?,?)"""
-            for c in keys:
-                self.resultsCursor.execute(query,(self.currentCase,c,alerts[c],self.currentText,))
+                                                'historical','future','pseudoneg',
+                                                'definite_negated_existence',
+                                                'probable_negated_existence'])
+print "_"*48
         
-        
-    def cleanUp(self):     
-        self.resultsConn.commit()
-
         
 def modifies(g,n,modifiers):
     pred = g.predecessors(n)
@@ -227,34 +126,26 @@ def getParser():
     """Generates command line parser for specifying database and other parameters"""
 
     parser = OptionParser()
-    parser.add_option("-d","--db",dest='dbname',
+    parser.add_option("-b","--db",dest='dbname',
                       help='name of db containing reports to parse')
-    parser.add_option("-o","--odb",dest='odbname',
-                      help='name of db containing results', default="testOutput.db")
-    parser.add_option("-s","--save_dir",dest='save_dir',default='critFinderResults',
-                      help='directory in which to store graphs of markups')
+    parser.add_option("-l","--lexical_kb",dest='lexical_kb',
+                      help='name of csv file containing lexical knowledge', default="lexical_kb.csv")
+    parser.add_option("-d","--domain_kb",dest='domain_kb',
+                      help='name of csv file containing domain knowledge', default="domain_kb.csv")
     parser.add_option("-t","--table",dest='table',default='reports',
                       help='table in database to select data from')
     parser.add_option("-i","--id",dest='id',default='rowid',
                       help='column in table to select identifier from')
-    parser.add_option("-g", "--graph",action='store_true', dest='doGraphs',default=False)
     parser.add_option("-r","--report",dest='report_text',default='impression',
                       help='column in table to select report text from')
-    parser.add_option("-c","--category",dest='category',default='ALL',
-                      help='category of critical finding to search for. If ALL, all categories are processed')
-    parser.add_option("-u","--uncertainty_allowed",dest="allow_uncertainty",
-                      action="store_true",default=False)
     return parser
 
 def main():
 
     parser = getParser()
     (options, args) = parser.parse_args()
-    if( options.dbname == options.odbname ):
-        raise ValueError("output database must be distinct from input database")        
     pec = criticalFinder(options)
     pec.processReports()
-    pec.cleanUp()
     
     
 if __name__=='__main__':
