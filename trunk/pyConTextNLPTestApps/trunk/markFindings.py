@@ -28,6 +28,8 @@ import pyConTextNLP.itemData as itemData
 import pyConTextNLP.helpers as helpers
 import getpass
 import time
+import xml.dom.minidom as minidom
+
 """helper functions to compute final classification"""
 
 class criticalFinder(object):
@@ -59,8 +61,6 @@ class criticalFinder(object):
         mods = itemData.instantiateFromCSV(options.lexical_kb)
         trgs = itemData.instantiateFromCSV(options.domain_kb)
 
-        self.initializeOutput(options.ofile,options.dbname, 
-                options.lexical_kb, options.domain_kb)
         self.modifiers = itemData.itemData()
         for key in mods.keys():
             self.modifiers.prepend(mods[key])
@@ -69,18 +69,20 @@ class criticalFinder(object):
         for key in trgs.keys():
             self.targets.prepend(trgs[key])
 
-    def initializeOutput(self,ofile,rfile,lfile,dfile):
-        self.f0 = file(ofile,'w')
-        self.f0.write(u"""<?xml version="1.0"?>\n""")
-        self.f0.write(u"""<pyConTextNLPVersion> %s </pyConTextNLPVersion>\n"""%pyConTextNLP.__version__)
-        self.f0.write(u"""<user> %s </user>\n"""%getpass.getuser())
-        self.f0.write(u"""<date> %s </date>\n"""%time.ctime())
-        self.f0.write(u"""<dataFile> %s </dataFile>\n"""%rfile)
-        self.f0.write(u"""<lexicalFile> %s </lexicalFile>\n"""%lfile)
-        self.f0.write(u"""<domainFile> %s </domainFile>\n"""%dfile)
+    def initializeOutput(self,rfile,lfile,dfile):
+        self.outString  =u"""<?xml version="1.0"?>\n"""
+        self.outString +=u"""<markup>\n"""
+        self.outString +=u"""<pyConTextNLPVersion> %s </pyConTextNLPVersion>\n"""%pyConTextNLP.__version__
+        self.outString +=u"""<operator> %s </operator>\n"""%getpass.getuser()
+        self.outString +=u"""<date> %s </date>\n"""%time.ctime()
+        self.outString +=u"""<dataFile> %s </dataFile>\n"""%rfile
+        self.outString +=u"""<lexicalFile> %s </lexicalFile>\n"""%lfile
+        self.outString +=u"""<domainFile> %s </domainFile>\n"""%dfile
 
     def closeOutput(self):
-        self.f0.close()
+        self.outString +=u"""</markup>\n"""
+    def getOutput(self):
+        return self.outString
     def analyzeReport(self, report, modFilters = None ):
         """given an individual radiology report, creates a pyConTextSql
         object that contains the context markup
@@ -110,7 +112,7 @@ class criticalFinder(object):
             #context.pruneModifierRelationships()
             context.dropInactiveModifiers()
             print context
-            self.f0.write( context.getXML()+u"\n")
+            self.outString += context.getXML()+u"\n"
             context.commit()
             count += 1
         context.computeDocumentGraph()    
@@ -127,14 +129,14 @@ class criticalFinder(object):
                 self.currentCase = r[0]
                 self.currentText = r[1].lower()
                 print "CurrentCase:",self.currentCase
-                self.f0.write(u"""<case>\n<caseNumber> %s </caseNumber>\n"""%self.currentCase)
+                self.outString +=u"""<case>\n<caseNumber> %s </caseNumber>\n"""%self.currentCase
                 self.analyzeReport(self.currentText,
                                     modFilters=['indication','probable_existence',
                                                 'definite_existence',
                                                 'historical','future','pseudoneg',
                                                 'definite_negated_existence',
                                                 'probable_negated_existence'])
-                self.f0.write(u"</case>\n")
+                self.outString +=u"</case>\n"
 print "_"*48
         
         
@@ -170,7 +172,16 @@ def main():
     parser = getParser()
     (options, args) = parser.parse_args()
     pec = criticalFinder(options)
+    pec.initializeOutput(options.dbname, 
+                options.lexical_kb, options.domain_kb)
     pec.processReports()
+    pec.closeOutput()
+    txt = pec.getOutput()
+    xml = minidom.parseString(txt)
+    print xml.toprettyxml()
+    f0 = file(options.ofile,"w")
+    f0.write(txt)
+    f0.close()
     
     
 if __name__=='__main__':
