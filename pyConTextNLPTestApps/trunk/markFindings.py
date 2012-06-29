@@ -22,9 +22,12 @@ import sys
 
 from optparse import OptionParser
 import sqlite3 as sqlite
+import pyConTextNLP
 import pyConTextNLP.pyConTextGraph as pyConText
 import pyConTextNLP.itemData as itemData
 import pyConTextNLP.helpers as helpers
+import getpass
+import time
 """helper functions to compute final classification"""
 
 class criticalFinder(object):
@@ -39,6 +42,7 @@ class criticalFinder(object):
         database.
         dbname: name of SQLite database
         """
+        
 
         # Define queries to select data from the SQLite database
         # this gets the reports we will process
@@ -55,6 +59,8 @@ class criticalFinder(object):
         mods = itemData.instantiateFromCSV(options.lexical_kb)
         trgs = itemData.instantiateFromCSV(options.domain_kb)
 
+        self.initializeOutput(options.ofile,options.dbname, 
+                options.lexical_kb, options.domain_kb)
         self.modifiers = itemData.itemData()
         for key in mods.keys():
             self.modifiers.prepend(mods[key])
@@ -63,6 +69,18 @@ class criticalFinder(object):
         for key in trgs.keys():
             self.targets.prepend(trgs[key])
 
+    def initializeOutput(self,ofile,rfile,lfile,dfile):
+        self.f0 = file(ofile,'w')
+        self.f0.write(u"""<?xml version="1.0"?>\n""")
+        self.f0.write(u"""<pyConTextNLPVersion> %s </pyConTextNLPVersion>\n"""%pyConTextNLP.__version__)
+        self.f0.write(u"""<user> %s </user>\n"""%getpass.getuser())
+        self.f0.write(u"""<date> %s </date>\n"""%time.ctime())
+        self.f0.write(u"""<dataFile> %s </dataFile>\n"""%rfile)
+        self.f0.write(u"""<lexicalFile> %s </lexicalFile>\n"""%lfile)
+        self.f0.write(u"""<domainFile> %s </domainFile>\n"""%dfile)
+
+    def closeOutput(self):
+        self.f0.close()
     def analyzeReport(self, report, modFilters = None ):
         """given an individual radiology report, creates a pyConTextSql
         object that contains the context markup
@@ -79,7 +97,7 @@ class criticalFinder(object):
         sentences = helpers.sentenceSplitter(report)
         count = 0
         for s in sentences:
-            print s
+            #print s
             context.setRawText(s) 
             context.cleanText()
             context.markItems(modifiers, mode="modifier")
@@ -92,31 +110,31 @@ class criticalFinder(object):
             #context.pruneModifierRelationships()
             context.dropInactiveModifiers()
             print context
-            print context.getXML()
+            self.f0.write( context.getXML()+u"\n")
             context.commit()
             count += 1
-            ('continue')
         context.computeDocumentGraph()    
-        print "*"*42
-        print context.getXML(currentGraph=False)
-        print "*"*42
+        #print "*"*42
+        #print context.getXML(currentGraph=False)
+        #print "*"*42
 
     def processReports(self):
         """For the selected reports (training or testing) in the database,
         process each report with peFinder
         """
         count = 0
-        for r in self.reports:
+        for r in self.reports[0:20]:
                 self.currentCase = r[0]
                 self.currentText = r[1].lower()
                 print "CurrentCase:",self.currentCase
+                self.f0.write(u"""<case>\n<caseNumber> %s </caseNumber>\n"""%self.currentCase)
                 self.analyzeReport(self.currentText,
                                     modFilters=['indication','probable_existence',
                                                 'definite_existence',
                                                 'historical','future','pseudoneg',
                                                 'definite_negated_existence',
                                                 'probable_negated_existence'])
-                raw_input()
+                self.f0.write(u"</case>\n")
 print "_"*48
         
         
@@ -133,6 +151,8 @@ def getParser():
     parser = OptionParser()
     parser.add_option("-b","--db",dest='dbname',
                       help='name of db containing reports to parse')
+    parser.add_option("-o","--output",dest="ofile",
+                      help="name of file for xml output",default="output.xml")
     parser.add_option("-l","--lexical_kb",dest='lexical_kb',
                       help='name of csv file containing lexical knowledge', default="lexical_kb.csv")
     parser.add_option("-d","--domain_kb",dest='domain_kb',
