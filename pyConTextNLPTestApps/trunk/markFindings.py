@@ -154,7 +154,7 @@ def getParser():
     parser.add_option("-b","--db",dest='dbname',
                       help='name of db containing reports to parse')
     parser.add_option("-o","--output",dest="ofile",
-                      help="name of file for xml output",default="output.xml")
+                      help="name of file for xml output",default="output")
     parser.add_option("-l","--lexical_kb",dest='lexical_kb',
                       help='name of csv file containing lexical knowledge', default="lexical_kb.csv")
     parser.add_option("-d","--domain_kb",dest='domain_kb',
@@ -179,8 +179,11 @@ def main():
     txt = pec.getOutput()
     xml = minidom.parseString(txt)
     print xml.toprettyxml()
-    f0 = file(options.ofile,"w")
+    f0 = file(options.ofile+".xml","w")
     f0.write(txt)
+    f0.close()
+    f0 = file(options.ofile+"_pretty.xml","w")
+    f0.write(xml.toprettyxml())
     f0.close()
     
     
