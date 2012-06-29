@@ -92,10 +92,14 @@ class criticalFinder(object):
             #context.pruneModifierRelationships()
             context.dropInactiveModifiers()
             print context
+            print context.getXML()
             context.commit()
             count += 1
             ('continue')
-        #context.computeDocumentGraph()    
+        context.computeDocumentGraph()    
+        print "*"*42
+        print context.getXML(currentGraph=False)
+        print "*"*42
 
     def processReports(self):
         """For the selected reports (training or testing) in the database,
