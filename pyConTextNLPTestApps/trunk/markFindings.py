@@ -29,6 +29,7 @@ import pyConTextNLP.helpers as helpers
 import getpass
 import time
 import xml.dom.minidom as minidom
+import codecs
 
 """helper functions to compute final classification"""
 
@@ -177,14 +178,18 @@ def main():
     pec.processReports()
     pec.closeOutput()
     txt = pec.getOutput()
-    xml = minidom.parseString(txt)
-    print xml.toprettyxml()
-    f0 = file(options.ofile+".xml","w")
+    f0 = codecs.open(options.ofile+".xml",encoding='utf-8',mode="w")
     f0.write(txt)
     f0.close()
-    f0 = file(options.ofile+"_pretty.xml","w")
-    f0.write(xml.toprettyxml())
-    f0.close()
+    try:
+        xml = minidom.parseString(txt)
+        print xml.toprettyxml(encoding="utf-8")
+        f0 = codecs.open(options.ofile+"_pretty.xml",encoding='utf-8',mode="w")
+        f0.write(xml.toprettyxml(encoding="utf-8"))
+        f0.close()
+    except Exception, error:
+        print "could not prettify xml"
+        print error
     
     
 if __name__=='__main__':
