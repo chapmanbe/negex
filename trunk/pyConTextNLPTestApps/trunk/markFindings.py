@@ -11,15 +11,12 @@
 #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #See the License for the specific language governing permissions and
 #limitations under the License.
-"""criticalFinderGraph is a program that processes the impression section of dictated
-radiology reports. pyContext is used to look for descriptions of acute critical
-fidnings.
+"""markFindings.py is a program that illustrates the basic use of pyConTextNLP.
 
 At this state, the program assumes that the reports are stored in a SQLite3 database.
-The database should have a table named 'reports' with a field named 'impression'
-although these values can be specified through the command line options."""
+By default the database has a table named 'reports' with a field named 'impression'.
+These values can be be specified through the command line options."""
 import sys
-
 from optparse import OptionParser
 import sqlite3 as sqlite
 import pyConTextNLP
@@ -30,8 +27,7 @@ import getpass
 import time
 import xml.dom.minidom as minidom
 import codecs
-
-"""helper functions to compute final classification"""
+import networkx as nx
 
 class criticalFinder(object):
     """This is the class definition that will contain the majority of processing
@@ -71,6 +67,7 @@ class criticalFinder(object):
             self.targets.prepend(trgs[key])
 
     def initializeOutput(self,rfile,lfile,dfile):
+        """Provides run specific information for XML output file"""
         self.outString  =u"""<?xml version="1.0"?>\n"""
         self.outString +=u"""<markup>\n"""
         self.outString +=u"""<pyConTextNLPVersion> %s </pyConTextNLPVersion>\n"""%pyConTextNLP.__version__
@@ -84,20 +81,23 @@ class criticalFinder(object):
         self.outString +=u"""</markup>\n"""
     def getOutput(self):
         return self.outString
-    def analyzeReport(self, report, modFilters = None ):
-        """given an individual radiology report, creates a pyConTextSql
+    def analyzeReport(self, report ):
+        """
+        given an individual radiology report, creates a pyConTextGraph
         object that contains the context markup
         report: a text string containing the radiology reports
-        modFilters: """
+        """
         context = self.context
         targets = self.targets
         modifiers = self.modifiers
-        if modFilters == None :
-            modFilters = ['indication','pseudoneg','probable_negated_existence',
-                          'definite_negated_existence', 'probable_existence',
-                          'definite_existence', 'historical']
         context.reset()
-        sentences = helpers.sentenceSplitter(report)
+        splitter = helpers.sentenceSplitter()
+# alternatively you can skip the default exceptions and add your own
+#       splitter = helpers.sentenceSpliter(useDefaults = False)
+        #splitter.addExceptionTerms("Dr.","Mr.","Mrs.",M.D.","R.N.","L.P.N.",addCaseVariants=True)
+        splitter.addExceptionTerms("Ms.","D.O.",addCaseVariants=True)
+        splitter.deleteExceptionTerms("A.B.","B.S.",deleteCaseVariants=True)
+        sentences = splitter.splitSentences(report)
         count = 0
         for s in sentences:
             #print s
@@ -111,12 +111,14 @@ class criticalFinder(object):
             context.dropMarks('Exclusion')
             context.applyModifiers()
             #context.pruneModifierRelationships()
-            context.dropInactiveModifiers()
+            #context.dropInactiveModifiers()
             print context
             self.outString += context.getXML()+u"\n"
             context.commit()
             count += 1
         context.computeDocumentGraph()    
+        ag = nx.to_pydot(context.getDocumentGraph(), strict=True)
+        ag.write("case%03d.pdf"%self.currentCase,format="pdf")
         #print "*"*42
         #print context.getXML(currentGraph=False)
         #print "*"*42
@@ -131,29 +133,16 @@ class criticalFinder(object):
                 self.currentText = r[1].lower()
                 print "CurrentCase:",self.currentCase
                 self.outString +=u"""<case>\n<caseNumber> %s </caseNumber>\n"""%self.currentCase
-                self.analyzeReport(self.currentText,
-                                    modFilters=['indication','probable_existence',
-                                                'definite_existence',
-                                                'historical','future','pseudoneg',
-                                                'definite_negated_existence',
-                                                'probable_negated_existence'])
+                self.analyzeReport(self.currentText)
                 self.outString +=u"</case>\n"
-print "_"*48
-        
-        
-def modifies(g,n,modifiers):
-    pred = g.predecessors(n)
-    if( not pred ):
-        return False
-    pcats = [n.getCategory().lower() for n in pred]
-    return bool(set(pcats).intersection([m.lower() for m in modifiers]))
-    
+        print "_"*48
+
 def getParser():
     """Generates command line parser for specifying database and other parameters"""
 
     parser = OptionParser()
     parser.add_option("-b","--db",dest='dbname',
-                      help='name of db containing reports to parse')
+                      help='name of SQLite database containing reports to parse')
     parser.add_option("-o","--output",dest="ofile",
                       help="name of file for xml output",default="output")
     parser.add_option("-l","--lexical_kb",dest='lexical_kb',
@@ -178,14 +167,13 @@ def main():
     pec.processReports()
     pec.closeOutput()
     txt = pec.getOutput()
-    f0 = codecs.open(options.ofile+".xml",encoding='utf-8',mode="w")
+    f0 = codecs.open(options.ofile+".xml",encoding=pec.context.getUnicodeEncoding(),mode="w")
     f0.write(txt)
     f0.close()
     try:
         xml = minidom.parseString(txt)
-        print xml.toprettyxml(encoding="utf-8")
-        f0 = codecs.open(options.ofile+"_pretty.xml",encoding='utf-8',mode="w")
-        f0.write(xml.toprettyxml(encoding="utf-8"))
+        f0 = codecs.open(options.ofile+"_pretty.xml",encoding=pec.context.getUnicodeEncoding(),mode="w")
+        f0.write(xml.toprettyxml(encoding=pec.context.getUnicodeEncoding()))
         f0.close()
     except Exception, error:
         print "could not prettify xml"
