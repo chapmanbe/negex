@@ -53,7 +53,7 @@ class criticalFinder(object):
         self.reports = self.cursor.fetchall()
         
         print "number of reports to process",len(self.reports)
-        self.context = pyConText.pyConText()
+        self.document = pyConText.ConTextDocument()
        
         mods = itemData.instantiateFromCSV(options.lexical_kb)
         trgs = itemData.instantiateFromCSV(options.domain_kb)
@@ -87,10 +87,9 @@ class criticalFinder(object):
         object that contains the context markup
         report: a text string containing the radiology reports
         """
-        context = self.context
+        context = pyConText.ConTextDocument()
         targets = self.targets
         modifiers = self.modifiers
-        context.reset()
         splitter = helpers.sentenceSplitter()
 # alternatively you can skip the default exceptions and add your own
 #       splitter = helpers.sentenceSpliter(useDefaults = False)
@@ -101,24 +100,20 @@ class criticalFinder(object):
         count = 0
         for s in sentences:
             #print s
-            context.setRawText(s) 
-            context.cleanText()
-            context.markItems(modifiers, mode="modifier")
-            context.markItems(targets, mode="target")
-            g= context.getCurrentGraph()
-            ic=0
-            context.pruneMarks()
-            context.dropMarks('Exclusion')
-            context.applyModifiers()
-            #context.pruneModifierRelationships()
-            #context.dropInactiveModifiers()
-            print context
-            self.outString += context.getXML()+u"\n"
-            context.commit()
-            count += 1
+            markup = pyConText.ConTextMarkup()
+            markup.setRawText(s) 
+            markup.cleanText()
+            markup.markItems(modifiers, mode="modifier")
+            markup.markItems(targets, mode="target")
+            markup.pruneMarks()
+            markup.dropMarks('Exclusion')
+            markup.applyModifiers()
+            print markup
+            context.addMarkup(markup)
 
+        self.outString += context.getXML() 
         print context.getSectionText()
-        raw_input('continue')
+        #raw_input('continue')
         context.computeDocumentGraph()    
         ag = nx.to_pydot(context.getDocumentGraph(), strict=True)
         ag.write("case%03d.pdf"%self.currentCase,format="pdf")
@@ -170,13 +165,13 @@ def main():
     pec.processReports()
     pec.closeOutput()
     txt = pec.getOutput()
-    f0 = codecs.open(options.ofile+".xml",encoding=pec.context.getUnicodeEncoding(),mode="w")
+    f0 = codecs.open(options.ofile+".xml",encoding='utf-8',mode="w")
     f0.write(txt)
     f0.close()
     try:
         xml = minidom.parseString(txt)
-        f0 = codecs.open(options.ofile+"_pretty.xml",encoding=pec.context.getUnicodeEncoding(),mode="w")
-        f0.write(xml.toprettyxml(encoding=pec.context.getUnicodeEncoding()))
+        f0 = codecs.open(options.ofile+"_pretty.xml",encoding='utf-8',mode="w")
+        f0.write(xml.toprettyxml(encoding='utf-8'))
         f0.close()
     except Exception, error:
         print "could not prettify xml"
