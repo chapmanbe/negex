@@ -28,7 +28,7 @@ import pyConTextNLP.helpers as helpers
 import re
 """helper functions to compute final classification"""
 
-class criticalFinder(object):
+class test_itemData(object):
     """This is the class definition that will contain the majority of processing
     algorithms for criticalFinder.
     
@@ -44,69 +44,52 @@ class criticalFinder(object):
         # Define queries to select data from the SQLite database
         # this gets the reports we will process
         
-        self.context = pyConText.pyConText()
        
-        mods = itemData.instantiateFromCSV(options.lexical_kb)
-        trgs = itemData.instantiateFromCSV(options.domain_kb)
+        self.items = itemData.instantiateFromCSVtoitemData(options.items,
+                literalColumn=options.lc,
+                categoryColumn=options.cc,
+                regexColumn=options.rec,
+                ruleColumn=options.ruc)
 
-        self.modifiers = itemData.itemData()
-        for key in mods.keys():
-            self.modifiers.prepend(mods[key])
 
-        self.targets = itemData.itemData()
-        for key in trgs.keys():
-            self.targets.prepend(trgs[key])
-
-    def testModifiers(self):
-        for m in self.modifiers:
+    def test_itemData(self):
+        for m in self.items:
             reg = m.getRE()
             if( reg ):
+                context = pyConText.ConTextMarkup()
                 reg = m.getLiteral()
                 r = re.compile(reg,re.IGNORECASE|re.UNICODE); 
                 print "l: %s; r: %s"%(m.getLiteral(),m.getRE())
                 print bool(r.findall(m.getLiteral())),r.findall(m.getLiteral())
                 print "Now clean text"
-                self.context.setRawText(reg)
-                self.context.cleanText()
-                print bool(r.findall(self.context.getText())),r.findall(self.context.getText())
+                context.setRawText(reg)
+                context.cleanText()
+                print bool(r.findall(context.getText())),r.findall(context.getText())
                 print "_"*42
 
-    def testTargets(self):
-        for m in self.targets:
-            reg = m.getRE()
-            if( reg ):
-                reg = m.getLiteral()
-                r = re.compile(reg,re.IGNORECASE|re.UNICODE); 
-                print "l: %s; r: %s"%(m.getLiteral(),m.getRE())
-                print bool(r.findall(m.getLiteral())),r.findall(m.getLiteral())
-                print "_"*42
-
-        
     
 def getParser():
     """Generates command line parser for specifying database and other parameters"""
 
     parser = OptionParser()
-    parser.add_option("-l","--lexical_kb",dest='lexical_kb',
-                      help='name of csv file containing lexical knowledge', default="lexical_kb.csv")
-    parser.add_option("-d","--domain_kb",dest='domain_kb',
-                      help='name of csv file containing domain knowledge', default="domain_kb.csv")
-    parser.add_option("-t","--table",dest='table',default='reports',
-                      help='table in database to select data from')
-    parser.add_option("-i","--id",dest='id',default='rowid',
-                      help='column in table to select identifier from')
-    parser.add_option("-r","--report",dest='report_text',default='impression',
-                      help='column in table to select report text from')
+    parser.add_option("-i","--items",dest='items',
+                      help='name of csv file containing itemData', default="")
+    parser.add_option("-l","--literal",dest='lc',type='int', default=0,
+                      help='column in file to select literal from')
+    parser.add_option("-c","--category",dest='cc',type='int', default=1,
+                      help='column in file to select category from')
+    parser.add_option("-r","--regex",dest='rec',type='int', default=2,
+                      help='column in file to select regular expression from')
+    parser.add_option("-u","--rule",dest='ruc',type='int', default=3,
+                      help='column in file to select rule from')
     return parser
 
 def main():
 
     parser = getParser()
     (options, args) = parser.parse_args()
-    pec = criticalFinder(options)
-    pec.testModifiers()
-    raw_input('continue')
-    pec.testTargets()
+    pec = test_itemData(options)
+    pec.test_itemData()
     
     
 if __name__=='__main__':
