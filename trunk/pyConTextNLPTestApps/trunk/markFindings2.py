@@ -55,16 +55,16 @@ class criticalFinder(object):
         print "number of reports to process",len(self.reports)
         self.document = pyConText.ConTextDocument()
        
-        mods = itemData.instantiateFromCSV(options.lexical_kb)
-        trgs = itemData.instantiateFromCSV(options.domain_kb)
-
-        self.modifiers = itemData.itemData()
-        for key in mods.keys():
-            self.modifiers.prepend(mods[key])
-
-        self.targets = itemData.itemData()
-        for key in trgs.keys():
-            self.targets.prepend(trgs[key])
+        self.modifiers = itemData.instantiateFromCSVtoitemData(options.lexical_kb,
+                literalColumn=1,
+                categoryColumn=2,
+                regexColumn=3,
+                ruleColumn=4)
+        self.targets = itemData.instantiateFromCSVtoitemData(options.domain_kb,
+                literalColumn=1,
+                categoryColumn=2,
+                regexColumn=3,
+                ruleColumn=4)
 
     def initializeOutput(self,rfile,lfile,dfile):
         """Provides run specific information for XML output file"""
@@ -114,12 +114,13 @@ class criticalFinder(object):
         self.outString += context.getXML() 
         print context.getSectionText()
         #raw_input('continue')
-        context.computeDocumentGraph()    
+        context.computeDocumentGraph(verbose=True)    
         ag = nx.to_pydot(context.getDocumentGraph(), strict=True)
         ag.write("case%03d.pdf"%self.currentCase,format="pdf")
         #print "*"*42
         #print context.getXML(currentGraph=False)
         #print "*"*42
+        raw_input('continue')
 
     def processReports(self):
         """For the selected reports (training or testing) in the database,
