@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Document Annotation Interface{% endblock %}
+
+{% block content %}
+
+<p>This form will allow you to screen radiology reports using the criteria stored in Lexical.
+
+<form action="/pyConTextKit/run/" method="post">
+{% csrf_token %}
+<!--<input type="radio" name="choice" id="choice" value="CARDIO" />-->
+<table border="0">
+<tr>
+<td>
+<table>
+{% for field in form %}
+        <tr>
+                <td>{{ field.label_tag }}</td>
+                <td>{{ field }}</td>
+        </tr>
+{% endfor %}
+</table>
+</td>
+<td valign="top">
+<div class="loading" style="border-top:2px solid green; border-bottom:2px solid green; background-color:#9AFF9A; padding:5px; display:none;">
+	<img src="{{ MEDIA_URL }}/spinner.gif" /><span style="font-size:18px; margin-left:10px;">The reports are being annotated.<br />Please wait...</span>
+</div>
+</td>
+</table>
+<input type="submit" value="Run" onclick="showLoading()"/>
+</form>
+<script type="text/javascript">
+function showLoading(){
+	$(".loading").show();
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Analysis Results{% endblock %}
+
+{% block content %}
+
+<p>These are the results. You can also <a href="/pyConTextKit/output_results/">output them to a CSV file</a>.
+
+<table>
+<tr>
+<th>id</th>
+<th>name</th>
+<th>path</th>
+<th>date</th>
+</tr>
+</tr>
+{% for i in result.all %}
+<tr class="{% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}">
+<td>{{ i.id }}</td>
+<td><a href="/pyConTextKit/visualize/{{ i.id }}">{{ i.label }}</a></td>
+<td>{{ i.path }}</td>
+<td>{{ i.date }}</td>
+</tr>
+{% endfor %}
+</table>
+<div id="chart"></div>
+<script type="text/javasript" src="http://www.drewconway.com/zia/wp-content/uploads/2011/07/mikedewar/mikedewar.js"></script>
+{% endblock %}

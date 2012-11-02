@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Annotation Results{% endblock %}
+{% block content %}
+        
+<p>These are the annotation results. You can also <a href="/pyConTextKit/output_alerts/">output them to a CSV file</a>.
+{% for j in alert.all %}
+<p>{% for f in j.get_all_fields %}
+{{f.label}}:{{f.value}}<br>
+{% endfor %}
+{% endfor %}
+
+      
+{% for i in alert.all %}
+{% if forloop.first %}
+<table>
+<tr>
+<th>reportid</th>
+<th>category</th>
+{% if i.disease %}
+<th>disease</th>
+{% endif %}
+{% if i.uncertainty %}
+<th>uncertainty</th>
+{% endif %}
+{% if i.historical %}
+<th>historical</th>
+{% endif %}
+</tr>
+{% endif %}
+<tr class="{% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}">
+<td><a href="/pyConTextKit/report/{{i.reportid}}/">{{ i.reportid }}</a></td>
+<td>{{ i.category }}</td>
+{% if i.disease %}
+<td>{{ i.disease }}</td>
+{% endif %}
+{% if i.uncertainty %}
+<td>{{ i.uncertainty }}</td>
+{% endif %}
+{% if i.historical %}
+<td>{{ i.historical }}</td>
+{% endif %}
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

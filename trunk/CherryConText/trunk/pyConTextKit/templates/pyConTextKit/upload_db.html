@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}pyConTextKit{% endblock %}
+
+{% block pagetitle %}Upload CSV into SQLite Database{% endblock %}
+{% block content %}
+{% if status != '' %}
+	{% autoescape off %}{{ status }}{% endautoescape %}
+{% endif %}
+
+{% if state %}
+<form method="post" enctype="multipart/form-data">
+	{% csrf_token %}
+	<table border="0">
+		<tr>
+			<td>
+				<table border="0">
+					{% if formType == 'report' %}
+					<tr>
+						<th>Upload Reports</th>
+					</tr>
+					<tr>
+						<td>
+							<table border="0">
+								{{ form_reports }}
+								<tr>
+									<td></td>
+									<td align="right"><input type="submit" name="submit" value="Upload Reports" /></td>
+								</tr>
+							</table>
+						</td>
+					<tr>
+					{% endif %}
+					{% if formType == 'lexicon' %}
+					<tr>
+						<th>Upload Lexicon</th>
+					</tr>
+					</tr>
+						<td>
+							<table border="0">
+								{{ form_lexicon }}
+								<tr>
+									<td></td>
+									<td align="right"><input type="submit" name="submit" value="Upload Lexicon" /></td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					{% endif %}
+				</table>
+    		</td>
+    		{% ifequal formType 'report' %}
+				<td style="padding:10px;" valign="top">
+					<h3 style="margin-top:-10px;">What are the requirements for CSV report file?</h3>
+					The report file needs to be saved as an Excel formatted CSV file.
+					<br /><span style="position:relative; top:20px;">Example<hr /></span>
+					<pre>
+					<table border="0" cellpadding="3" style="background-color:#FFFACD;">
+						<tr>
+							<td><b>report</b></td><td><b>report_id</b></td>
+						</r>
+						<tr>
+							<td>NO EVIDENCE OF A PULMONARY EMBOLISM.
+GROUND-GLASS ...</td><td>4</td>
+						</tr>
+					</table>
+					</pre>
+				</td>
+    		{% endifequal %}
+    		{% ifequal formType 'lexicon' %}
+				<td style="padding:10px;" valign="top">
+					<h3 style="margin-top:-10px;">What are the requirements for CSV lexicon file?</h3>
+					The lexicon file needs to be saved as an Excel formatted CSV file.
+					<br /><span style="position:relative; top:20px;">Example<hr /></span>
+					<pre>
+					<table border="0" cellpadding="3" style="background-color:#FFFACD;">
+						<tr>
+							<td><b>creator_id</b></td><td><b>category</b></td><td><b>literal</b></td><td><b>re</b></td><td><b>rule</b></td>
+						</tr>
+						<tr>
+							<td>1</td><td>PROBABLE_NEGATED_EXISTENCE</td><td>no definite</td><td>no[\s]*definite</td><td>forward</td>
+						</tr>
+					</table>
+					</pre>
+				</td>
+    		{% endifequal %}
+    	</tr>
+    </table>
+</form>
+{% else %}
+<a href="report">Upload Report &raquo;</a><br />
+<a href="lexicon">Upload Lexicon &raquo;</a>
+{% endif %}
+{% endblock %}

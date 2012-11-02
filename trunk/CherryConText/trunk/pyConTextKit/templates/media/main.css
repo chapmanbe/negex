@@ -1,0 +1,122 @@
+/*Copyright 2010 Annie T. Chen
+#
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.*/
+body{
+margin:0;
+padding:10px;
+line-height: 1.5em;
+}
+
+a:link    {color:#006699;text-decoration:none;}
+a:visited {color:#006699;text-decoration:none;}
+a:hover   {color:#DF013A;text-decoration:underline;}
+a:active  {color:#DF013A;text-decoration:none;}
+
+#topnav {
+    font-size:.9em;
+    text-align: right;
+}
+
+#topnav a:link    {color:#006699;text-decoration:none;}
+#topnav a:visited {color:#006699;text-decoration:none;}
+#topnav a:hover   {color:#DF013A;text-decoration:underline;}
+#topnav a:active  {color:#DF013A;text-decoration:none;}
+
+.username {
+    color:#EEB422;
+    font-weight: bold;
+}
+
+#topsection{
+background: #006699;
+height: 90px; /*Height of top section*/
+}
+
+#topsection h1{
+margin: 0;
+padding-top: 15px;
+color:white;
+}
+
+.innertube h4{
+	color:#000;
+	font-size:20px;
+    /*color: #006699;*/
+}
+
+#contentwrapper{
+float: left;
+width: 100%;
+
+}
+
+#contentcolumn{
+	margin-left: 200px; /*Set left margin to LeftColumnWidth*/
+}
+
+#leftcolumn{
+	float: left;
+	width: 200px; /*Width of left column*/
+	margin-left: -100%;
+}
+
+#footer{
+	clear: left;
+	width: 100%;
+	background: #006699;
+	color: #FFF;
+	text-align: center;
+	padding: 4px 0;
+}
+
+#footer a{
+	color: #FFFF80;
+}
+
+.innertube{
+	margin: 10px; /*Margins for inner DIV inside each column (to provide padding)*/
+	margin-top: 0;
+}
+
+th{
+background:#006699; color: white;
+}
+
+tr.odd td {
+	background-color: #FFFFFF; color: black;
+}
+tr.even td {
+	background-color: #F0F8FF; color: black;
+}
+
+td{
+vertical-align:top;
+}
+
+#spinner {
+  display: none;
+  position: relative;
+}
+
+.itemdata_categories {
+    font-size: .9em
+}
+
+#nobullet ul {
+    margin: 0;
+    padding: 0;
+}
+
+#nobullet ul li {
+    list-style: none;
+}

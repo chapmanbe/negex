@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Reports{% endblock %}
+
+{% block content %}
+
+<p>These are the reports.
+
+{% if report %}
+
+<table>
+{% for r in report.object_list %}
+<tr>
+<td>
+<table>
+<tr>
+<th>id</th><td>{{ r.id }}</td>
+</tr>
+<tr>
+<th>dataset</th><td>{{ r.dataset }}</td>
+</tr>
+<tr>
+<th>reportid</th><td>{{ r.reportid }}</td>
+</tr>
+<tr>
+<th>report type</th><td>{{ r.reportType }}</td>
+</tr>
+<tr>
+<th>report</th><td>{{ r.report }}</td>
+</tr>
+</table>
+</td>
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+
+<div class="paging">
+<table align="center">
+<tr>
+<td>
+{% if report.has_previous %}
+<a href="?page={{ report.previous_page_number}}" style="text-decoration:none;color:#000000;" ><img src="/static/images/article_previous.gif" border="0"/>&nbsp;&nbsp;prev&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;</a>
+{% endif %}
+</td>
+<td>
+Page {{ report.number }} of {{ report.paginator.num_pages }}
+</td>
+<td>
+{% if report.has_next %}
+<a href="?page={{ report.next_page_number }}" style="text-decoration:none;color:#000000;">&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;next&nbsp;&nbsp;<img src="/static/images/article_next.gif" border="0"/></a>{% endif %}
+</tr>
+</table></div>
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Analysis Statistics{% endblock %}
+
+{% block content %}
+
+<p>These are the statistics.
+
+<table>
+<tr>
+<th>category</th>
+<th>alert</th>
+<th>occurrences</th>
+</tr>
+{% for i in alert.all %}
+<tr class="{% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}">
+<td>{{ i.category }}</td>
+<td>{{ i.alert }}</td>
+<td>{{ i.id__count }}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

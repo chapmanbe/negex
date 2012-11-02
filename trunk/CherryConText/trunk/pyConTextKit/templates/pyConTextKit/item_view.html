@@ -1,0 +1,30 @@
+<form action="." method="post" accept-charset="utf-8">
+    <table>
+        <thead>
+            <tr>
+                <th>include</th>
+                <th>literal</th>
+                <th>re</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for form in formset.forms %}
+            <tr>
+                <td>
+                    {# don't forget about the id field #}
+                    {{ form.id }}
+                    {{ form.include }}
+                </td>
+                <td>{{ form.literal }}</td>
+                <td>{{ form.re }}</td>
+            </tr>
+        {% endfor %}        
+        </tbody>
+    </table>
+    <p>
+        {# and don't forget about the management form #}
+        {{ formset.management_form }}
+        <button type="submit" name="action" value="save">{% chunk "save" %}</button>
+        <button type="submit" name="action" value="delete">{% chunk "delete" %}</button>
+    </p>
+</form>
