@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block extra_js %}
+<script type="text/javascript">
+$( document ).ready( function() {
+	$( '#searchSubmit' ).click( function() {
+		q = $( '#q' ).val();
+		$( '#results' ).html( '&nbsp;' ).load( '{% url demo_user_search %}?q=' + q );
+	});
+});
+
+$( document ).ajaxStart( function() {
+	$( '#spinner' ).show();
+}).ajaxStop( function() {
+	$( '#spinner' ).hide();
+});
+</script>
+{% endblock %}
+
+{% block title %}pyConTextKit{% endblock %}
+
+{% block pagetitle %}Edit Extraction Criterion{% endblock %}
+{% block content %}
+
+<p><span font-size=11>{{ intro|safe }}</span>
+
+<style type="text/css">
+#id_label,#id_category,#id_literal{
+	width:250px;
+}
+</style>
+
+<form action="" method="post">
+{% csrf_token %}
+
+<div style="width:40%;">
+{{ dup|safe }}
+</div>
+
+<table border="0">
+<tr>
+	<td>
+		<table class="wide">
+		{{ form }}
+		</table>
+	</td>
+	<td valign="top">
+		<script type='text/javascript'>
+		function passCat(){
+			var info = $("#category-items").val();
+			$("#id_category").val(info);
+		}
+		</script>
+		<div style='margin-top:58px;'>
+			OR <select id='category-items'>
+				<option value='---'>---</option>
+			{% for index in cat_items %}
+				<option value="{{ index }}">{{ index }}</option>
+			{% endfor %}
+			</select>
+			<input type='button' id='add-cat' value='&laquo; Add Category' onclick='passCat()' />
+		</div>
+		<br />Example entry<hr />
+		<pre style="margin-top:-25px;">
+		<table border="0" style="background-color:#FFFACD; padding:5px;">
+			<tr><td align="right"><b>Creator</b></td><td>Joe Example</td></tr>
+			<tr><td align="right"><b>Name</b></td><td>Domain Items 2012</td></tr>
+			<tr><td align="right"><b>Category</b></td><td>PULMONARY_EMBOLISM</td></tr>
+			<tr><td align="right"><b>Re</b></td><td>\bpe\b</td></tr>
+			<tr><td align="right"><b>Rule</b></td><td></td></tr>
+			<tr><td align="right"><b>Lexicon Type</b></td><td>Domain</td></tr>
+		</table>
+		</pre>
+	</td>
+</tr>
+</table>
+<input type="submit" name="submit" value="Submit" />
+</form>
+
+<div>
+
+<!--
+<p>Search for a sample report:
+<p>Report ID: <input id="q" type="text"/>
+<input id="searchSubmit" type="submit" value="Search"/>
+<br/>
+<div class="margin">
+<span id="spinner"><img src="{{ MEDIA_URL }}spinner.gif"/></span>
+</div>
+-->
+</div>
+
+<div id="results"></div>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Annotation Lexicon{% endblock %}
+
+{% block content %}
+<p>Below you will find all of the annotation criteria in the lexicon.  Here you
+are able to do the following:
+<ul>
+<li><a href="/pyConTextKit/itemData_edit/">add a new item</a></li>
+<li>edit an item by clicking on it
+<li>
+
+<form action="/pyConTextKit/itemData/" method="post">
+{% csrf_token %}
+search for an existing term: {{ form.term }}
+<input type="submit" value="Search" />
+</form>
+</li>
+</ul>
+
+<p>You can also view a subset of the lexicon by clicking on its category name:
+
+<p span class="itemdata_categories">
+Targets: <a href="/pyConTextKit/itemData_filter/CRITICAL_CONCEPTS">Critical Concepts</a>,
+<a href="/pyConTextKit/itemData_filter/SO">Surveillance Ontology</a><br>
+Modifiers: <a href="/pyConTextKit/itemData_filter/CONJ">Conjugates</a>,
+<a href="/pyConTextKit/itemData_filter/DEFINITE_EXISTENCE">Definite Existence</a>,
+<a href="/pyConTextKit/itemData_filter/DEFINITE_NEGATED_EXISTENCE">Definite Negated
+Existence</a>,
+<a href="/pyConTextKit/itemData_filter/FUTURE">Future</a>,
+<a href="/pyConTextKit/itemData_filter/INDICATION">Indication</a>,
+<a href="/pyConTextKit/itemData_filter/PROBABLE_EXISTENCE">Probable Existence</a>,
+<a href="/pyConTextKit/itemData_filter/PROBABLE_NEGATED_EXISTENCE">Probable Negated
+Existence</a>,
+<a href="/pyConTextKit/itemData_filter/PSEUDONEG">Pseudo-Negated</a>
+</span>
+
+<form action="/pyConTextKit/itemData/" method="post">
+{% csrf_token %}
+{{ formset.management_form }}
+<table>
+<tr>
+<th>category</th>
+<th>literal</th>
+<th>include</th>
+</tr> 
+{% for f in formset.forms %}
+<tr class="{% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}">
+    <td>{{ f.id }}{{ f.instance.category }}</td>
+    <td><a href='/pyConTextKit/itemData_edit/{{f.instance.id}}'>{{ f.instance.literal }}</a></td>
+    <td>{{ f.include }}</td>
+</tr>
+{% endfor %}
+</table>
+<input type="submit" value="Save" />
+</form>
+
+{% endblock %}

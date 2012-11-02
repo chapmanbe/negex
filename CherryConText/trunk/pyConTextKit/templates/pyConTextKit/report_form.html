@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block head %}
+<script type="text/javascript" src="/media/prototype.js"></script>
+<script type="text/javascript" src="/media/my_ajax_function.js"></script>
+{% endblock %}
+
+{% block content %}
+    {% if form_was_valid %}
+        {# ... show whatever... #}
+    {% else %}
+        <form action="/auto/reserve/" method="POST">
+        <ul>
+        {{ form.as_ul}}
+        <li><label for="submit">&nbsp;</label>
+        <input type="submit" id="submit" name="submit" value="Submit"/></li>
+        </ul>
+        </form>
+    {% endif %}
+{% endblock %}

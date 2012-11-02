@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Report Detail{% endblock %}
+
+{% block content %}
+
+<table>        
+{% for f in report.get_all_fields %}
+<tr>
+<th>{{f.label}}</th>
+<td>{{f.value}}</td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

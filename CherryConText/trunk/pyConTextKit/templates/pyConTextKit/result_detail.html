@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+        
+<p>Analysis Results
+
+<p>These are the results.
+
+<p>{% for f in result.get_all_fields %}
+{{f.label}}:{{f.value}}<br>
+{% endfor %}
+
+{% endblock %}

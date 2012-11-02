@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Document Classification Specifications{% endblock %}
+
+{% block content %}
+        
+<p>This form allows you to specify the criteria for viewing concepts identified
+in from reports.  Include concepts that fit the following criteria:
+
+<form action="/pyConTextKit/alerts/" method="post">
+{% csrf_token %}
+<div id="nobullet">
+<table>
+<tr>
+<td>{{ form.limit_pos.label_tag }}</td>
+<td>{{ form.limit_pos }}</td>
+</tr>
+<tr>
+<td>{{ form.limit_new.label_tag }}</td>
+<td>{{ form.limit_new }}</td>
+</tr>
+<tr><td>{{ form.uncertainty.label_tag }}</td>
+<td><ul>
+{% for choice in form.uncertainty.field.choices %}
+<li>
+{% if forloop.counter == 1 %}
+<input type="radio" name="uncertainty" value="{{choice.0}}" checked>
+{% else %}
+<input type="radio" name="uncertainty" value="{{choice.0}}">
+{% endif %}
+<label for="">{{choice.1}}</label>
+</li>
+{% endfor %}
+</ul></td></tr>       
+</table>
+</div>
+
+<p><input type="submit" value="Run" />
+</form>
+{% endblock %}

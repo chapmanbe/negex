@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>pyConTextKit</title>
+<link rel="stylesheet" href="{{ MEDIA_URL }}main.css" type="text/css" media="screen" title="no title" charset="utf-8">
+<script type="text/javascript" src="{{ MEDIA_URL }}jquery.js"></script>
+<script type="text/javascript" src="http://www.drewconway.com/zia/wp-content/uploads/2011/07/mikedewar/d3/d3.js"></script>
+<script type="text/javascript" src="http://www.drewconway.com/zia/wp-content/uploads/2011/07/mikedewar/d3/d3.geom.js"></script>
+<script type="text/javascript" src="http://www.drewconway.com/zia/wp-content/uploads/2011/07/mikedewar/d3/d3.layout.js"></script>
+<link type="text/css" rel="stylesheet" href="http://www.drewconway.com/zia/wp-content/uploads/2011/07/mikedewar/d3/force.css"/>
+{% block extra_js %}{% endblock %}
+</head>
+<body>
+<div id="maincontainer">
+<div id="topnav">
+{% block user %}
+{% if user.is_authenticated %}
+Welcome, <span class="username">{{ user.username }}</span>&nbsp;|&nbsp;
+<a href="/pyConTextKit/logout/">log out</a>
+{% else %}
+<a href="/pyConTextKit/accounts/login/">Log in</a>
+{% endif %}
+{% endblock user %}
+</div>
+<div id="topsection">
+<div class="innertube">
+<h1>{% block title %}pyConTextKit{% endblock %}</h1>
+</div>
+</div>
+<div id="contentwrapper">
+<div id="contentcolumn">
+<div class="innertube">
+<h4>{% block pagetitle %}{% endblock %}</h4>
+{% block content %}
+{% endblock %}
+</div>
+</div>
+</div>
+<div id="leftcolumn">
+<div class="innertube">{% include "leftnav.html" %}</div>
+</div>
+<div id="footer"><a href="http://dbmi.ucsd.edu/">DBMI</a></div>
+
+</div>
+
+
+</body></html>
+<!--End of CSS Template page source! -->

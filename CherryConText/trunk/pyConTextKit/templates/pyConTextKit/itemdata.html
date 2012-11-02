@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Add/Edit lexical item{% endblock %}
+
+{% block content %}
+<p>Below you will find all of the annotation criteria in the lexicon.  Here you
+are able to do the following:
+<ul>
+<li><a href="/pyConTextKit/itemData_edit/">add a new item</a></li>
+<li>edit an existing item by clicking on it's literal</li>
+</ul>
+
+<p>You can also view a subset of the lexicon by clicking on its category name:
+
+<p span class="itemdata_categories">
+<table>
+	<tr>
+		<th>Domain Lexicon Label (Targets)</th>
+	</tr>
+	<tr>
+		<td><input type="checkbox" checked/>{{ domain|safe }}</td>
+	</tr>
+</table>
+<!--<a href="/pyConTextKit/itemData_filter/CRITICAL_CONCEPTS">Critical Concepts</a>,
+<a href="/pyConTextKit/itemData_filter/SO">Surveillance Ontology</a><br>-->
+<table>
+	<tr>
+		<th>Linguistic Lexicon Label (Modifiers)</th>
+	</tr>
+	<tr>
+		<td><input type="checkbox" checked/>{{ linguistic|safe }}</td>
+	</tr>
+</table>
+<!--<a href="/pyConTextKit/itemData_filter/CONJ">Conjugates</a>,
+<a href="/pyConTextKit/itemData_filter/DEFINITE_EXISTENCE">Definite Existence</a>,
+<a href="/pyConTextKit/itemData_filter/DEFINITE_NEGATED_EXISTENCE">Definite Negated
+Existence</a>,
+<a href="/pyConTextKit/itemData_filter/FUTURE">Future</a>,<br />
+<a href="/pyConTextKit/itemData_filter/INDICATION">Indication</a>,
+<a href="/pyConTextKit/itemData_filter/PROBABLE_EXISTENCE">Probable Existence</a>,
+<a href="/pyConTextKit/itemData_filter/PROBABLE_NEGATED_EXISTENCE">Probable Negated
+Existence</a>,
+<a href="/pyConTextKit/itemData_filter/PSEUDONEG">Pseudo-Negated</a>-->
+</span>
+
+<form action="/pyConTextKit/itemData/" method="post">
+{% csrf_token %}
+<span style="width:40px; height:20px; background-color:#0BB5FF; color:white; font-size:10px;">DOM</span> = Domain <span style="width:40px; height:20px; background-color:#98FB98; font-size:10px;">LNG</span> = Linguistic |
+Search for an existing term: {{ form.term }}
+<input type="submit" value="Search" /> | <a href="/pyConTextKit/show/showall">Select All</a> &middot; <a href="/pyConTextKit/show/hideall">Hide All</a>
+</form>
+
+<form action="/pyConTextKit/itemData/" method="post">
+{% csrf_token %}
+{{ formset.management_form }}
+<table width="710">
+<tr>
+<th></th>
+<th>category</th>
+<th>literal</th>
+<th>lexicon name</th>
+<th></th>
+</tr>
+{% for f in formset.forms %}
+<tr class="{% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}" style="{% ifequal f.instance.show '0' %} opacity:.6 {% endifequal %}">
+	<td>
+	{% ifequal f.instance.lex_type "domain" %}
+			<span style="width:40px; height:20px; background-color:#0BB5FF; color:white; font-size:10px;">DOM</span>
+	{% endifequal %}
+	{% ifequal f.instance.lex_type "linguistic" %}
+		<span style="width:40px; height:20px; background-color:#98FB98; font-size:10px;">LNG</span>
+	{% endifequal %}
+	</td>
+    <td>{{ f.id }}{{ f.instance.category }}</td>
+    <td><a name="{{ forloop.counter }}" href='/pyConTextKit/itemData_edit/{{f.instance.id}}'>{{ f.instance.literal }}</a></td>
+    <td>{{ f.instance.label }}</td>
+    {% ifequal f.instance.show "1" %}
+    	<td><a style="border:no-style;" href="/pyConTextKit/hide/{{ f.instance.id }}/{{ forloop.counter }}"><img style="margin-top:2px;" width="13" height="13" title="Hide" src="{{ MEDIA_URL }}/add.png" /></a></td>
+	{% endifequal %}
+	{% ifequal f.instance.show "0" %}
+		<td><a style="border:no-style;" href="/pyConTextKit/show/{{ f.instance.id }}/{{ forloop.counter }}"><img style="margin-top:2px;" width="13" height="13" title="Show" src="{{ MEDIA_URL }}/close2.png" /></a></td>
+	{% endifequal %}
+</tr>
+{% endfor %}
+</table>
+</form>
+
+{% endblock %}
