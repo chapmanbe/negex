@@ -18,12 +18,22 @@ Note this application admin site uses the following credentials:
 admin/admin
 
 Thanks to Damien Tougas for his help on this recipe.
+
+Modified by BEC to allow automatic opening of web browser
 """
+import webbrowser
+PORT = 8090
 if __name__ == '__main__':
     import cherrypy
-    cherrypy.config.update({'server.socket_port': 8090, 'checker.on': False})
+    cherrypy.config.update({'server.socket_port': PORT, 'checker.on': False})
 
     from djangoplugin import DjangoAppPlugin
     DjangoAppPlugin(cherrypy.engine, settings_module='pyConTextKit.settings').subscribe()
 
-    cherrypy.quickstart()
+    #cherrypy.quickstart()
+    #cherrypy.quickstart(script_name="/pyConTextKit/accounts/login/?next=/accounts/login")
+
+    cherrypy.engine.start()
+    webbrowser.open_new_tab("http://localhost:%s/pyConTextKit/accounts/login/?next=/accounts/login/"%str(PORT))
+    cherrypy.engine.block()
+
