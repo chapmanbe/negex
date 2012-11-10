@@ -1,4 +1,4 @@
-#Django settings for pyConTextWeb project.
+#Django settings for CherryConText project.
 import sys
 import os
 
@@ -10,7 +10,7 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 user_home = os.path.expanduser('~')
-pyConTextWebHome = os.path.join(user_home,'CherryConText','pyConTextKit')
+CherryConTextHome = os.path.join(user_home,'CherryConText','pyConTextKit')
 
 
 MANAGERS = ADMINS
@@ -18,7 +18,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(pyConTextWebHome,'pyConTextWeb.sqlite'),
+        'NAME': os.path.join(CherryConTextHome,'CherryConText.sqlite'),
 	    'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -51,7 +51,7 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = os.path.join(pyConTextWebHome, 'templates', 'media')#'templates', 'media' <=> 'media', 'pyConTextWeb'
+MEDIA_ROOT = os.path.join(CherryConTextHome, 'templates', 'media')#'templates', 'media' <=> 'media', 'CherryConText'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -124,7 +124,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(pyConTextWebHome, "templates")
+    os.path.join(CherryConTextHome, "templates")
 )
 
 INSTALLED_APPS = (

@@ -15,7 +15,6 @@
 """
 from django.http import HttpResponseRedirect
 from django.contrib.auth.views import login
-#from pyConTextWeb import settings
 import settings
 
 class LoginRequiredMiddleware:

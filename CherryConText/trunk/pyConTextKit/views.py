@@ -28,11 +28,11 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 #connection for raw sql
 from django.db import connection, transaction
 from pyConTextKit.models import *
-from pyConTextKit.runTwistedConText import runConText
+from pyConTextKit.runConText import runConText
 from pyConTextKit.forms import *
 from csvparser import csvParser
 from pyConTextKit.models import *
-from settings import pyConTextWebHome
+from settings import CherryConTextHome
 import re
 import time
 import gzip
@@ -76,7 +76,7 @@ def run(request):
             labelDomain = rform.cleaned_data['labelDomain']
             outputLabel = rform.cleaned_data['outputLabel']
 
-            filelocation = runConText(pyConTextWebHome,dataset,label,labelDomain)
+            filelocation = runConText(CherryConTextHome,dataset,label,labelDomain)
             s = Result.objects.create(label=outputLabel,path=filelocation,date=int(time.time()))
             s.save()
             #populate the database with value and other info
@@ -387,9 +387,9 @@ def upload_csv(request, formType=None):
          return render_to_response('pyConTextKit/upload_db.html',{'status': status, 'state': False},context_instance=RequestContext(request))
 
 def handle_uploaded_file(f, label, type, lex_type=None):
-	user_home = os.getenv('HOME')
-	pyConTextWebHome = os.path.join(user_home,'pyConTextWeb','templates','media','csvuploads') #this needs to be modifed to accomodate othe user's home directory
-	destPath = os.path.join(pyConTextWebHome,str(int(round(time.time() * 1000)))+'.csv')
+	user_home = os.path.expanduser('~')
+	CherryConTextHome = os.path.join(user_home,'CherryConText','pyConTextKit','templates','media','csvuploads') #this needs to be modifed to accomodate othe user's home directory
+	destPath = os.path.join(CherryConTextHome,str(int(round(time.time() * 1000)))+'.csv')
 	destination = open(destPath,'wb+')
 	for chunk in f.chunks():
 		destination.write(chunk)
