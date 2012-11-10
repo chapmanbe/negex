@@ -24,15 +24,15 @@ import time
 import os
 import gzip
 import cPickle
-class TwistedConText(object):
+class CherryConText(object):
     """This is the class definition that will contain the majority of processing
-    algorithms for TwistedConText.
+    algorithms for CherryConText.
 
     The constructor takes as an argument the name of an SQLite database containing
     the relevant information.
     """
     def __init__(self, db, reports_label, domain_label, lexical_label):
-        """create an instance of a TwistedConText object associated with the SQLite
+        """create an instance of a CherryConText object associated with the SQLite
         """
 
 
@@ -95,16 +95,16 @@ class TwistedConText(object):
                 self.results[self.currentCase] = rslt.getDocumentGraph()
 
 
-def runConText(twistedhome, reports_label="my reports",
+def runConText(cherryhome, reports_label="my reports",
         items_label_domain="my domain items",
         items_label_lexical="my lexical items" ):
 
-    pec = TwistedConText(os.path.join(twistedhome,"pyConTextWeb.sqlite"), reports_label,
+    pec = CherryConText(os.path.join(cherryhome,"CherryConText.sqlite"), reports_label,
             items_label_domain,
             items_label_lexical)
     pec.processReports()
 
-    outputDir = os.path.join(twistedhome,"output")
+    outputDir = os.path.join(cherryhome,"output")
     if( not os.path.exists(outputDir) ):
         os.mkdir(outputDir)
     outfile = os.path.join(outputDir,str(time.time())+".gpickle")

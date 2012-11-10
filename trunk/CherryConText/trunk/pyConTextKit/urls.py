@@ -1,4 +1,3 @@
-#from pyConTextWeb import settings
 import settings
 from django.conf.urls.defaults import *
 
