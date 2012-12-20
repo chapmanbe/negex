@@ -32,7 +32,7 @@ import networkx as nx
 class criticalFinder(object):
     """This is the class definition that will contain the majority of processing
     algorithms for criticalFinder.
-    
+
     The constructor takes as an argument the name of an SQLite database containing
     the relevant information.
     """
@@ -41,30 +41,30 @@ class criticalFinder(object):
         database.
         dbname: name of SQLite database
         """
-        
+
 
         # Define queries to select data from the SQLite database
         # this gets the reports we will process
         self.query1 = '''SELECT %s,%s FROM %s'''%(options.id,options.report_text,options.table)
-        
+
         self.conn = sqlite.connect(options.dbname)
         self.cursor = self.conn.cursor()
         self.cursor.execute(self.query1)
         self.reports = self.cursor.fetchall()
-        
+
         print "number of reports to process",len(self.reports)
         self.document = pyConText.ConTextDocument()
-       
+
         self.modifiers = itemData.instantiateFromCSVtoitemData(options.lexical_kb,
-                literalColumn=1,
-                categoryColumn=2,
-                regexColumn=3,
-                ruleColumn=4)
+                literalColumn=0,
+                categoryColumn=1,
+                regexColumn=2,
+                ruleColumn=3)
         self.targets = itemData.instantiateFromCSVtoitemData(options.domain_kb,
-                literalColumn=1,
-                categoryColumn=2,
-                regexColumn=3,
-                ruleColumn=4)
+                literalColumn=0,
+                categoryColumn=1,
+                regexColumn=2,
+                ruleColumn=3)
 
     def initializeOutput(self,rfile,lfile,dfile):
         """Provides run specific information for XML output file"""
@@ -101,7 +101,7 @@ class criticalFinder(object):
         for s in sentences:
             #print s
             markup = pyConText.ConTextMarkup()
-            markup.setRawText(s) 
+            markup.setRawText(s)
             markup.cleanText()
             markup.markItems(modifiers, mode="modifier")
             markup.markItems(targets, mode="target")
@@ -111,10 +111,10 @@ class criticalFinder(object):
             print markup
             context.addMarkup(markup)
 
-        self.outString += context.getXML() 
+        self.outString += context.getXML()
         print context.getSectionText()
         #raw_input('continue')
-        context.computeDocumentGraph(verbose=True)    
+        context.computeDocumentGraph(verbose=True)
         ag = nx.to_pydot(context.getDocumentGraph(), strict=True)
         ag.write("case%03d.pdf"%self.currentCase,format="pdf")
         #print "*"*42
@@ -161,7 +161,7 @@ def main():
     parser = getParser()
     (options, args) = parser.parse_args()
     pec = criticalFinder(options)
-    pec.initializeOutput(options.dbname, 
+    pec.initializeOutput(options.dbname,
                 options.lexical_kb, options.domain_kb)
     pec.processReports()
     pec.closeOutput()
@@ -177,9 +177,9 @@ def main():
     except Exception, error:
         print "could not prettify xml"
         print error
-    
-    
+
+
 if __name__=='__main__':
-    
+
     main()
-    
+

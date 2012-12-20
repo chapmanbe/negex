@@ -28,11 +28,17 @@ import time
 import xml.dom.minidom as minidom
 import codecs
 import networkx as nx
+def modifies(g,n,modifiers):
+    pred = g.predecessors(n)
+    if( not pred ):
+        return False
+    pcats = [n.getCategory().lower() for n in pred]
+    return bool(set(pcats).intersection([m.lower() for m in modifiers]))
 
 class criticalFinder(object):
     """This is the class definition that will contain the majority of processing
     algorithms for criticalFinder.
-    
+
     The constructor takes as an argument the name of an SQLite database containing
     the relevant information.
     """
@@ -41,30 +47,24 @@ class criticalFinder(object):
         database.
         dbname: name of SQLite database
         """
-        
+
 
         # Define queries to select data from the SQLite database
         # this gets the reports we will process
         self.query1 = '''SELECT %s,%s FROM %s'''%(options.id,options.report_text,options.table)
-        
+
         self.conn = sqlite.connect(options.dbname)
         self.cursor = self.conn.cursor()
         self.cursor.execute(self.query1)
         self.reports = self.cursor.fetchall()
-        
+
         print "number of reports to process",len(self.reports)
-        self.context = pyConText.pyConText()
-       
-        mods = itemData.instantiateFromCSV(options.lexical_kb)
-        trgs = itemData.instantiateFromCSV(options.domain_kb)
+        self.document = pyConText.ConTextDocument()
 
-        self.modifiers = itemData.itemData()
-        for key in mods.keys():
-            self.modifiers.prepend(mods[key])
+        self.modifiers = itemData.instantiateFromCSVtoitemData(options.lexical_kb)
+        self.targets = itemData.instantiateFromCSVtoitemData(options.domain_kb)
 
-        self.targets = itemData.itemData()
-        for key in trgs.keys():
-            self.targets.prepend(trgs[key])
+        self.allow_uncertainty = options.allow_uncertainty
 
     def initializeOutput(self,rfile,lfile,dfile):
         """Provides run specific information for XML output file"""
@@ -87,10 +87,9 @@ class criticalFinder(object):
         object that contains the context markup
         report: a text string containing the radiology reports
         """
-        context = self.context
+        context = self.document
         targets = self.targets
         modifiers = self.modifiers
-        context.reset()
         splitter = helpers.sentenceSplitter()
 # alternatively you can skip the default exceptions and add your own
 #       splitter = helpers.sentenceSpliter(useDefaults = False)
@@ -101,22 +100,21 @@ class criticalFinder(object):
         count = 0
         for s in sentences:
             #print s
-            context.setRawText(s) 
-            context.cleanText()
-            context.markItems(modifiers, mode="modifier")
-            context.markItems(targets, mode="target")
-            g= context.getCurrentGraph()
-            ic=0
-            context.pruneMarks()
-            context.dropMarks('Exclusion')
-            context.applyModifiers()
+            markup = pyConText.ConTextMarkup()
+            markup.setRawText(s)
+            markup.cleanText()
+            markup.markItems(modifiers, mode="modifier")
+            markup.markItems(targets, mode="target")
+            markup.pruneMarks()
+            markup.dropMarks('Exclusion')
+            markup.applyModifiers()
             #context.pruneModifierRelationships()
             #context.dropInactiveModifiers()
-            print context
+            print markup
             self.outString += context.getXML()+u"\n"
-            context.commit()
+            context.addMarkup(markup)
             count += 1
-        context.computeDocumentGraph()    
+        context.computeDocumentGraph()
         ag = nx.to_pydot(context.getDocumentGraph(), strict=True)
         ag.write("case%03d.pdf"%self.currentCase,format="pdf")
         #print "*"*42
@@ -129,22 +127,26 @@ class criticalFinder(object):
         """
         count = 0
         for r in self.reports[0:20]:
+                self.document = pyConText.ConTextDocument()
                 self.currentCase = r[0]
                 self.currentText = r[1].lower()
                 print "CurrentCase:",self.currentCase
                 self.outString +=u"""<case>\n<caseNumber> %s </caseNumber>\n"""%self.currentCase
                 self.analyzeReport(self.currentText)
                 self.outString +=u"</case>\n"
+                rslts = self.classifyDocumentTargets()
+                print rslts
+                raw_input('continue')
         print "_"*48
     def classifyDocumentTargets(self):
         rslts = {}
-        cntxt = self.context
-        cntxt.computeDocumentGraph()
-        g = cntxt.getDocumentGraph()
+        g = self.document.getDocumentGraph()
+        #print 1/0
         targets = [n[0] for n in g.nodes(data = True) if n[1].get("category","") == 'target']
-        
+
         if( not targets ):
-            return alerts,rslts
+            print "no targets"
+            return rslts
         if(self.allow_uncertainty):
             pos_filters = ["definite_existence","probable_existence"]
         else:
@@ -153,7 +155,7 @@ class criticalFinder(object):
             mods = g.predecessors(t)
             rslts[t] = {}
             if( not mods ): # an unmodified target is disease positive,certain, and acute
-                
+
                 rslts[t]['disease'] = 'Pos'
                 rslts[t]['uncertainty'] = 'No'
                 rslts[t]['temporality'] = 'New'
@@ -178,7 +180,7 @@ class criticalFinder(object):
                     else:
                         rslts[t]['temporality'] = 'New'
 
-        return rslts   
+        return rslts
 
 def getParser():
     """Generates command line parser for specifying database and other parameters"""
@@ -198,6 +200,9 @@ def getParser():
                       help='column in table to select identifier from')
     parser.add_option("-r","--report",dest='report_text',default='impression',
                       help='column in table to select report text from')
+    parser.add_option("-u","--uncertainty_allowed",dest="allow_uncertainty",
+                      action="store_true",default=False)
+
     return parser
 
 def main():
@@ -205,26 +210,27 @@ def main():
     parser = getParser()
     (options, args) = parser.parse_args()
     pec = criticalFinder(options)
-    pec.initializeOutput(options.dbname, 
+    pec.initializeOutput(options.dbname,
                 options.lexical_kb, options.domain_kb)
     pec.processReports()
     pec.closeOutput()
     txt = pec.getOutput()
-    f0 = codecs.open(options.ofile+".xml",encoding=pec.context.getUnicodeEncoding(),mode="w")
-    f0.write(txt)
-    f0.close()
-    try:
-        xml = minidom.parseString(txt)
-        print xml.toprettyxml(encoding=pec.context.getUnicodeEncoding())
-        f0 = codecs.open(options.ofile+"_pretty.xml",encoding=pec.context.getUnicodeEncoding(),mode="w")
-        f0.write(xml.toprettyxml(encoding=pec.context.getUnicodeEncoding()))
-        f0.close()
-    except Exception, error:
-        print "could not prettify xml"
-        print error
-    
-    
+#    f0 = codecs.open(options.ofile+".xml",encoding=pec.document.getUnicodeEncoding(),mode="w")
+#    f0.write(txt)
+#    f0.close()
+
+#    try:
+#        xml = minidom.parseString(txt)
+#        print xml.toprettyxml(encoding=pec.document.getUnicodeEncoding())
+#        f0 = codecs.open(options.ofile+"_pretty.xml",encoding=pec.document.getUnicodeEncoding(),mode="w")
+#        f0.write(xml.toprettyxml(encoding=pec.document.getUnicodeEncoding()))
+#        f0.close()
+#    except Exception, error:
+#        print "could not prettify xml"
+#        print error
+
+
 if __name__=='__main__':
-    
+
     main()
-    
+
