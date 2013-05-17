@@ -29,7 +29,7 @@ The package has three files
   * *pyConTextSql.py*. 
 
 = How to Use =
-I am working on improving the documentation and (hopefully) adding some testing to the code. epydoc generated documentation for the current release (0.3.0) is available [http://quiil.ucsd.edu/pyConTextNLP/0.3.0/ here] and the epydoc generated documentation for the latest version in the subversion repository will be available [http://quiil.ucsd.edu/pyConTextNLP/current here].
+I am working on improving the documentation and (hopefully) adding some testing to the code.
 
 Some preliminary comments:
 
