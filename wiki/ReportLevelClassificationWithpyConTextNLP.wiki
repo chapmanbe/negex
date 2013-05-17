@@ -9,6 +9,12 @@ First, while pyConTextNLP marks up text on a sentence level, meaning that modifi
 In applications we have been developing we have focused on a "maximum" principle. For example, the most positive finding in a sentence within the document is taken to be the finding value for the document. More generally, we have been specifying a schema where the schema may combine multiple categories (e.g. disease state, uncertainty, temporality) into one ordinal scale, and then our application classifies a document based on the maximum schema score observed at a sentence level.
 
 = Schema =
+As we have used them, a schema consists of ordered list of values. Each value is a triplet consisting of
+  # A Numeric value used for comparing schema values
+  # A label summarizing the meaning of the value
+  # A logical rule describing how that value is realized
+
+The logical rules are written as Python expressions relating pyConTextNLP categories defined in lexical and domain knowledge bases to each other through "and" and "or" statements. These rules are modified by the actual value 
 {{{
 # Lines that start with the # symbol are comments and are ignored
 #The schema consists of a numeric value, followed by a label (e.g. "AMBIVALENT"), followed by a Python express that can 
