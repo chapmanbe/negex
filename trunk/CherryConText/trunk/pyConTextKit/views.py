@@ -15,6 +15,7 @@
 This module contains the views that are used in the pyConTextKit application.
 """
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import logout
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, render_to_response
@@ -30,7 +31,7 @@ from django.db import connection, transaction
 from pyConTextKit.models import *
 from pyConTextKit.runConText import runConText
 from pyConTextKit.forms import *
-from csvparser import csvParser
+from dataParser import *
 from pyConTextKit.models import *
 from settings import CherryConTextHome
 import re
@@ -41,6 +42,7 @@ import datetime
 
 from django.forms.models import modelformset_factory
 
+@login_required
 def index(request):
     """
     This in the index page.
@@ -55,14 +57,16 @@ def index(request):
     #    j.include = i.include
     #    j.save()
     return render_to_response('pyConTextKit/index.html',context_instance=RequestContext(request))
-
+@csrf_protect
+@login_required
 def logout_view(request):
     """
     This logs the user out of the application.
     """
     logout(request)
     return render_to_response('registration/logout.html',context_instance=RequestContext(request))
-
+@csrf_protect
+@login_required
 def run(request):
     """
     This executes the Annotate feature.
@@ -89,6 +93,8 @@ def run(request):
 
     return render_to_response('pyConTextKit/run.html', {'form': rform,},context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def complete(request):
     """
     This page is rendered by the run view when the Annotate feature is finished.
@@ -100,6 +106,8 @@ def complete(request):
 	Changed reference from itemDatum object to Lexical object, formset shares same names w/ Lexical's
 	names, they did not need modification. (Line 122, Declaration of formset)
 """
+@csrf_protect
+@login_required
 def itemData_view(request):
     itemFormSet = modelformset_factory(Items, fields=('id',), extra=0)
     sform = SearchForm(data = request.POST)
@@ -133,6 +141,8 @@ def itemData_view(request):
 	UPDATED 7/27/12 G.D.
 	Removed supercategory and replaced w/ category, not sure if we want this method anymore
 """
+@csrf_protect
+@login_required
 def itemData_filter(request, cat):
     """
     This method takes a supercategory name as an argument and renders a view of
@@ -156,6 +166,8 @@ def itemData_filter(request, cat):
 	UPDATED 7/27/12
 	Changed reference from itemDatum to Lexical
 """
+@csrf_protect
+@login_required
 def itemData_edit(request, itemData_id=None):
     cat_items_temp = Items.objects.all().values_list("category").distinct()
     cat_items = ()
@@ -207,20 +219,13 @@ def itemData_edit(request, itemData_id=None):
 
     return render_to_response('pyConTextKit/itemdata_edit.html', {'form': iform, 'intro': intro, 'dup':dup, 'cat_items':cat_items}, context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def itemData_complete(request):
     return render_to_response('pyConTextKit/itemdata_complete.html',context_instance=RequestContext(request))
 
-def output_alerts(request):
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=alerts.csv'
-
-    writer = csv.writer(response)
-    alerts=Alert.objects.all()
-    writer.writerow(['id', 'reportid', 'category', 'alert','report'])
-    for a in alerts:
-        writer.writerow([smart_str(a.id), smart_str(a.reportid), smart_str(a.category), smart_str(a.alert), smart_str(a.report)])
-    return response
-
+@csrf_protect
+@login_required
 def output_results(request):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=results.csv'
@@ -232,6 +237,8 @@ def output_results(request):
         writer.writerow([smart_str(r.id), smart_str(r.label), smart_str(r.path), smart_str(r.date)])
     return response
 
+@csrf_protect
+@login_required
 def reports(request):
     report_list=Report.objects.all()
     paginator = Paginator(report_list, 50) # Show N reports per page
@@ -247,6 +254,8 @@ def reports(request):
 
     return render_to_response('pyConTextKit/reports.html', {"report": reports},context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def report_detail(request, reportid):
     try:
         r = Report.objects.get(id=reportid)
@@ -254,6 +263,8 @@ def report_detail(request, reportid):
         raise Http404
     return render_to_response('pyConTextKit/report_detail.html',{'report': r},context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def alerts(request):
     if request.method == "POST":
         rform = DocClassForm(data = request.POST)
@@ -306,10 +317,14 @@ def alerts(request):
 
     return render_to_response('pyConTextKit/run_alert.html', {'form': rform,},context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def results(request):
     r=Result.objects.all()
     return render_to_response('pyConTextKit/results.html',{'result': r},context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def result_detail(request, result_id):
     try:
         r = Result.objects.get(id=result_id)
@@ -317,15 +332,15 @@ def result_detail(request, result_id):
         raise Http404
     return render_to_response('pyConTextKit/result_detail.html', {'result': r},context_instance=RequestContext(request))
 
-def stats(request):
-    a=Alert.objects.values('category','alert').annotate(Count('id'))
-    return render_to_response('pyConTextKit/stats.html',{'alert': a},context_instance=RequestContext(request))
-
+@csrf_protect
+@login_required
 def report_text(request, reportid):
     if request.is_ajax() and request.method == 'POST':
         report = Report.objects.get(pk=request.POST.get('reportid', ''))
     return render_to_response('pyConTextKit/report_test.html', {'report':report}, context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def ajax_user_search( request ):
     if request.is_ajax():
         q = request.GET.get( 'q' )
@@ -338,6 +353,8 @@ def ajax_user_search( request ):
             return render_to_response( template, data,
                                        context_instance = RequestContext( request ) )
 
+@csrf_protect
+@login_required
 def upload_csv(request, formType=None):
     status = ''
     uploadDbFormReports = UploadDatabaseReports(request.POST, request.FILES)
@@ -346,7 +363,7 @@ def upload_csv(request, formType=None):
     	if formType == "report":
             if request.method == 'POST':
                 if uploadDbFormReports.is_valid():
-                    res = handle_uploaded_file(request.FILES['csvfile'], uploadDbFormReports.cleaned_data['dataset'], "report")
+                    res = handle_uploaded_reports_file(request.FILES['csvfile'], uploadDbFormReports.cleaned_data['dataset'])
                     #uploadDbFormReports.save()
                     if len(res) > 0:
                     	status = "<span style=\"color:red;\">The following errors occured:<br /><ul>"
@@ -366,7 +383,7 @@ def upload_csv(request, formType=None):
             if request.method == 'POST':
                 if uploadDbFormLexicon.is_valid():
                     lex_type = uploadDbFormLexicon.cleaned_data['like']
-                    res = handle_uploaded_file(request.FILES['csvfile'], uploadDbFormLexicon.cleaned_data['label'], "lexicon", lex_type=lex_type)
+                    res = handle_uploaded_lexical_file(request.FILES['csvfile'], uploadDbFormLexicon.cleaned_data['label'], "lexicon", lex_type=lex_type)
                     #uploadDbFormLexicon.save()
                     if len(res) > 0:
                     	status = "<span style=\"color:red;\">The following errors occured:<br /><ul>"
@@ -386,25 +403,41 @@ def upload_csv(request, formType=None):
     else:
          return render_to_response('pyConTextKit/upload_db.html',{'status': status, 'state': False},context_instance=RequestContext(request))
 
-def handle_uploaded_file(f, label, type, lex_type=None):
-	user_home = os.path.expanduser('~')
-	CherryConTextHome = os.path.join(user_home,'CherryConText','pyConTextKit','templates','media','csvuploads') #this needs to be modifed to accomodate othe user's home directory
-	destPath = os.path.join(CherryConTextHome,str(int(round(time.time() * 1000)))+'.csv')
-	destination = open(destPath,'wb+')
-	for chunk in f.chunks():
-		destination.write(chunk)
-	destination.close()
-	#then implement the csvparser class here
-	c = csvParser(destPath, label, type, lex_type=lex_type)
-	c.iterateRows()
-	return c.returnIssues() #updates DB with table information
+def handle_uploaded_reports_file(f, label):
+    user_home = os.path.expanduser('~')
+    CherryConTextHome = os.path.join(user_home,'CherryConText','pyConTextKit','templates','media','csvuploads') #this needs to be modifed to accomodate othe user's home directory
+    destPath = os.path.join(CherryConTextHome,str(int(round(time.time() * 1000)))+'.txt')
+    destination = open(destPath,'wb+')
+    for chunk in f.chunks():
+            destination.write(chunk)
+    destination.close()
+    #then implement the csvparser class here
+    c = reportParser(destPath, label)
+    c.uploadReports("","")
+    return c.returnIssues() #updates DB with table information
+def handle_uploaded_lexical_file(f, label, type, lex_type=None):
+    user_home = os.path.expanduser('~')
+    CherryConTextHome = os.path.join(user_home,'CherryConText','pyConTextKit','templates','media','csvuploads') #this needs to be modifed to accomodate othe user's home directory
+    destPath = os.path.join(CherryConTextHome,str(int(round(time.time() * 1000)))+'.csv')
+    destination = open(destPath,'wb+')
+    for chunk in f.chunks():
+            destination.write(chunk)
+    destination.close()
+    #then implement the csvparser class here
+    c = lexicalParser(destPath, label, lex_type=lex_type)
+    c.uploadData()
+    return c.returnIssues() #updates DB with table information
 
+@csrf_protect
+@login_required
 def hide(request, idp, idp2):
     item = Items.objects.get(id=idp)
     item.show = '0'
     item.save()
     return HttpResponseRedirect('/pyConTextKit/itemData/#'+str(idp2))
 
+@csrf_protect
+@login_required
 def show(request, idp, idp2):
     if idp == "showall":
         items = Items.objects.all()
@@ -423,6 +456,8 @@ def show(request, idp, idp2):
 
     return HttpResponseRedirect('/pyConTextKit/itemData/#'+str(idp2))
 
+@csrf_protect
+@login_required
 def resultVisualize(request, idp):
     result = Result.objects.get(id=idp)
     fo = gzip.open(result.path,"rb")
@@ -435,8 +470,12 @@ def resultVisualize(request, idp):
 
     return render_to_response('pyConTextKit/visualize.html',{ 'output':output,'result':result, 'date':date },context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def reports_index(request):
 	return render_to_response('pyConTextKit/reports_index.html',context_instance=RequestContext(request))
 
+@csrf_protect
+@login_required
 def annotation_index(request):
 	return render_to_response('pyConTextKit/annotation_index.html',context_instance=RequestContext(request))
