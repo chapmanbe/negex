@@ -18,16 +18,14 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import logout
 from django.db.models import Count
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
-from django.template import Context, RequestContext
+from django.template import RequestContext
 import csv
 import os
-from django.utils.encoding import smart_str, smart_unicode
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 #connection for raw sql
-from django.db import connection, transaction
 from pyConTextKit.models import *
 from pyConTextKit.runConText import runConText
 from pyConTextKit.forms import *
