@@ -24,8 +24,6 @@ application (e.g. on/off)
 
 3) Report: the reports used by the application
 
-4) Alert: contains a document-level classifications for extracted instances
-
 5) Result: contains each instance identified when Annotate function is run
 
 Note: The get_all_fields method is redundant. A model should be defined for this
@@ -98,43 +96,14 @@ class Report(models.Model):
                   }
                 )
         return fields
-
-# Can we generalize the Alert class to be an application class that is built by
-# the user?
-class Alert(models.Model):
-    reportid = models.IntegerField()
-    category = models.TextField()
-    alert = models.IntegerField()
-    report = models.TextField()
+class ClassificationSet(models.Model):
+    classSetLabel = models.CharField(max_length=250)
+    classification = models.TextField()
     def __unicode__(self):
-        return str(self.reportid)
-    def get_all_fields(self):
-        """Returns a list of all field names on the instance."""
-        fields = ()
-        for f in self._meta.fields:
-
-            fname = f.name
-            # resolve picklists/choices, with get_xyz_display() function
-            get_choice = 'get_'+fname+'_display'
-            if hasattr( self, get_choice):
-                value = getattr( self, get_choice)()
-            else:
-                try :
-                    value = getattr(self, fname)
-                except User.DoesNotExist:
-                    value = None
-
-            # only display fields with values and skip some fields entirely
-            if f.editable and value and f.name not in ('id', 'status', 'workshop', 'user', 'complete') :
-
-                fields.append(
-                  {
-                   'label':f.verbose_name,
-                   'name':f.name,
-                   'value':value,
-                  }
-                )
-        return fields
+        return str(self.classSetLabel)
+class Schema(models.Model):
+    schemaLabel = models.CharField(max_length=250)
+    schema = models.TextField()
 
 # Don't know that we want to store this back into the database
 # How would we make results general?
