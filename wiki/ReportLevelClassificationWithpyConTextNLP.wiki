@@ -31,6 +31,12 @@ The logical rules are written as Python expressions relating pyConTextNLP catego
 8,Positive/Certain/Acute,DISEASE_STATE == 1 and CERTAINTY_STATE == 1 and ACUTE_STATE == 1 
 }}}
 = Classification Rules =
+For our application we specified classification rules with a text file # symbols indicate a comment line while @ symbols indicate a rule.
+
+We used three categories of rules: 
+  # *Classification Rules:* These are rule that classify a particular state of the document based on what modifiers are acting upon targets. They come in a set. The set must have a name (e.g. DISEASE_STATE) and need at least one RULE and a DEFAULT state. Each rule consists of the set name, the ordinal value of the rule, and the list of modifier categories that if present render the rule true. The DEFAULT state is the rule value that should be assumed if no modifiers are acting upon a relevant target.
+  # *Category Rules:* These are rules that state that a target category should be changed if it is modified by certain categories. the rule consists of the target category to be changed (e.g. "DVT") and the modifier categories that if present would trigger a change the target category by concatenating the category names.
+  # *Severity Rules:* Severity rules state which target categories we should try to extract severity values for.
 {{{
 # Lines that start with the # symbol are comments and are ignored
 # processReport current has three types of rules: @CLASSIFICATION_RULE, @CATEGORY_RULE, and @SEVERITY_RULE
