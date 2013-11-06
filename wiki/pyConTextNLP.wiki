@@ -14,9 +14,10 @@ Other publications/presentations based on pyConText include:
 Note: we changed the package name from pyConText to pyConTextNLP because of a name conflict on pypi.
 
 = Installation  =
-pyConTextNLP can be downloaded from the Downloads page here on the negex Google Code project. Alternatively, it can be downloaded from the pypi repository http://pypi.python.org/pypi/pyConTextNLP. Since pyConTextNLP is registered with pypi, it can be installed with easy_install:
+pyConTextNLP can be downloaded from the Downloads page here on the negex Google Code project. Alternatively, it can be downloaded from the pypi repository http://pypi.python.org/pypi/pyConTextNLP. Since pyConTextNLP is registered with pypi, it can be installed with easy_install or pip:
 
-  sudo easy_install pyConTextNLP
+easy_install pyConTextNLP 
+pip install pyConTextNLP
 
 The only listed dependency is NetworkX and easy_install should also install this for you, if it is not already installed. However, there is optional functionality that is dependent on pygraphviz. I do not yet have this worked into the setuptools script.
 
