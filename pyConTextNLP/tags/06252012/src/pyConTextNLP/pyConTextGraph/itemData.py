@@ -109,6 +109,7 @@ class itemData(list):
 probableNegations = itemData(
 ["PRN for","PROBABLE_NEGATED_EXISTENCE","","forward"],
 ["P.R.N. for","PROBABLE_NEGATED_EXISTENCE","","forward"],
+["can rule out","PROBABLE_NEGATED_EXISTENCE","","forward"],
 ["cannot be excluded","PROBABLE_NEGATED_EXISTENCE",r"""cannot\sbe\s((entirely|completely)\s)?(excluded|ruled out)""","backward"],
 ["is not excluded","PROBABLE_NEGATED_EXISTENCE",r"""(is|was|are|were)\snot\sexcluded""",'backward'],
 ["adequate to rule the patient out against","PROBABLE_NEGATED_EXISTENCE","","forward"],
