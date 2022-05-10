@@ -1,0 +1,5 @@
+# jupyter notebooks meta files
+.ipynb_checkpoints/
+
+# OS irrelevant files
+.DS_Store
